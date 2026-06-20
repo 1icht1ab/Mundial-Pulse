@@ -1,18 +1,17 @@
 /**
  * MobileViewport — contenedor global de la app.
  *
- * Restringe el ancho a `max-w-md mx-auto` y, en pantallas grandes, simula
- * un dispositivo móvil nativo de alta fidelidad: marco de tinta grueso,
- * esquinas redondeadas, sombra sólida tipo sticker troquelado y un backdrop
- * de lunares pop. En móvil ocupa toda la pantalla (full-bleed), como una
- * app nativa real.
+ * Centra una "columna teléfono" de `max-w-md` que llega de arriba abajo de la
+ * pantalla, para que la Bottom Navigation Bar (con `position: fixed`) quede
+ * alineada exactamente con el marco del dispositivo. En desktop muestra el
+ * marco neo-brutalista (borde de tinta, esquinas superiores redondeadas y un
+ * backdrop de lunares pop); en móvil ocupa toda la pantalla (full-bleed).
  */
 export default function MobileViewport({ children }) {
   return (
     <div
-      className="flex min-h-[100dvh] w-full justify-center sm:py-6 sm:px-4"
+      className="flex min-h-[100dvh] w-full justify-center sm:pt-5"
       style={{
-        // Backdrop kawaii de lunares sobre púrpura (solo visible en desktop).
         backgroundColor: '#4338CA',
         backgroundImage:
           'radial-gradient(rgba(255,255,255,0.16) 1.6px, transparent 1.6px)',
@@ -20,10 +19,10 @@ export default function MobileViewport({ children }) {
       }}
     >
       <div
-        className="relative flex min-h-[100dvh] w-full max-w-md flex-col
+        className="relative flex h-[100dvh] w-full max-w-md flex-col
                    overflow-hidden bg-main-cream
-                   sm:min-h-0 sm:rounded-[2.25rem] sm:border-[3px] sm:border-ink
-                   sm:shadow-sticker-lg"
+                   sm:h-[calc(100dvh-1.25rem)] sm:rounded-t-[2.25rem]
+                   sm:border-[3px] sm:border-b-0 sm:border-ink"
       >
         {children}
       </div>

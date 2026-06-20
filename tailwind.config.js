@@ -52,10 +52,20 @@ export default {
           '0%, 100%': { transform: 'rotate(-3deg)' },
           '50%': { transform: 'rotate(3deg)' },
         },
+        breathe: {
+          '0%, 100%': { transform: 'scale(1)', opacity: '0.9' },
+          '50%': { transform: 'scale(1.18)', opacity: '1' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
       },
       animation: {
         'pop-in': 'pop-in 0.25s ease-out both',
         wiggle: 'wiggle 0.6s ease-in-out infinite',
+        breathe: 'breathe 4s ease-in-out infinite',
+        float: 'float 3s ease-in-out infinite',
       },
     },
   },
