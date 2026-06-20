@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply font-sans text-ink antialiased;
+    /* Backdrop oscuro detrás del "teléfono" en pantallas grandes. */
+    background-color: #312e81;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Evita el zoom de iOS al enfocar inputs (<16px). */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+@layer components {
+  /* Tarjeta tipo sticker físico troquelado: contorno de tinta + sombra sólida. */
+  .sticker-card {
+    @apply rounded-sticker border-[3px] border-ink bg-white shadow-sticker;
+  }
+
+  /* Botón pop con interacción de "presionado": cae sobre su propia sombra. */
+  .btn-pop {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-sticker
+           border-[3px] border-ink px-5 py-3 font-display text-lg tracking-wide
+           shadow-sticker transition-all duration-150
+           active:translate-x-[5px] active:translate-y-[5px] active:shadow-none;
+  }
+
+  /* Etiqueta / chip pop. */
+  .pop-tag {
+    @apply inline-flex items-center gap-1 rounded-full border-2 border-ink
+           px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide;
+  }
+}
