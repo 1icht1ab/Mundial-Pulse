@@ -60,12 +60,39 @@ export default {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-8px)' },
         },
+        // Orbe de respiración 12s: inhala (0-33%) → mantén (33-66%) → exhala (66-100%)
+        'breathe-orb': {
+          '0%, 100%': { transform: 'scale(1)' },
+          '33%': { transform: 'scale(1.24)' },
+          '66%': { transform: 'scale(1.24)' },
+        },
+        // Anillo exterior del orbe: expande más para efecto ripple
+        'breathe-ring': {
+          '0%, 100%': { transform: 'scale(1)', opacity: '0.3' },
+          '33%': { transform: 'scale(1.45)', opacity: '0.15' },
+          '66%': { transform: 'scale(1.45)', opacity: '0.15' },
+        },
+        // Balones: pop rápido con overshoot antes de desaparecer
+        'ball-pop': {
+          '0%':   { transform: 'scale(1)',   opacity: '1' },
+          '30%':  { transform: 'scale(1.4)', opacity: '1' },
+          '100%': { transform: 'scale(0)',   opacity: '0' },
+        },
+        // Balones: flotación suave mientras están activos
+        'ball-float': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%':      { transform: 'translateY(-7px)' },
+        },
       },
       animation: {
-        'pop-in': 'pop-in 0.25s ease-out both',
-        wiggle: 'wiggle 0.6s ease-in-out infinite',
-        breathe: 'breathe 4s ease-in-out infinite',
-        float: 'float 3s ease-in-out infinite',
+        'pop-in':      'pop-in 0.25s ease-out both',
+        wiggle:        'wiggle 0.6s ease-in-out infinite',
+        breathe:       'breathe 4s ease-in-out infinite',
+        float:         'float 3s ease-in-out infinite',
+        'breathe-orb': 'breathe-orb 12s ease-in-out infinite',
+        'breathe-ring': 'breathe-ring 12s ease-in-out infinite',
+        'ball-pop':    'ball-pop 0.3s cubic-bezier(0.36,0.07,0.19,0.97) forwards',
+        'ball-float':  'ball-float 2s ease-in-out infinite',
       },
     },
   },

@@ -44,3 +44,44 @@
            px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide;
   }
 }
+
+/* ── Animaciones del mini-juego "The Stress Popper" ──────────────────
+   Declaradas explícitamente para garantizar su inclusión en el bundle
+   (las clases dinámicas en ternarios pueden ser ignoradas por JIT).   */
+
+@keyframes breathe-orb {
+  0%, 100% { transform: scale(1); }
+  33%      { transform: scale(1.24); }
+  66%      { transform: scale(1.24); }
+}
+@keyframes breathe-ring {
+  0%, 100% { transform: scale(1);    opacity: 0.3; }
+  33%      { transform: scale(1.45); opacity: 0.15; }
+  66%      { transform: scale(1.45); opacity: 0.15; }
+}
+/* Balón inactivo: flotación suave asíncrona (duración overrideada por inline style) */
+@keyframes ball-float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-7px); }
+}
+/* Balón explotado: overshoot rápido antes de desaparecer */
+@keyframes ball-pop {
+  0%   { transform: scale(1);   opacity: 1; }
+  30%  { transform: scale(1.4); opacity: 1; }
+  100% { transform: scale(0);   opacity: 0; }
+}
+
+@layer utilities {
+  .animate-breathe-orb {
+    animation: breathe-orb 12s ease-in-out infinite;
+  }
+  .animate-breathe-ring {
+    animation: breathe-ring 12s ease-in-out infinite;
+  }
+  .animate-ball-float {
+    animation: ball-float 2s ease-in-out infinite;
+  }
+  .animate-ball-pop {
+    animation: ball-pop 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+  }
+}
