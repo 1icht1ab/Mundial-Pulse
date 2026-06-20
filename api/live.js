@@ -4,9 +4,10 @@
  * Proxy de partidos del Mundial 2026 con caché en Supabase.
  *
  * Env vars requeridas (cargar con `vercel env add`):
- *   LIVE_API_KEY       → API key de v3.football.api-sports.io
- *   SUPABASE_URL       → https://dsplubxtterpmvkdbthd.supabase.co
- *   SUPABASE_ANON_KEY  → anon key del proyecto
+ *   LIVE_API_KEY              → API key de v3.football.api-sports.io
+ *   SUPABASE_URL              → https://dsplubxtterpmvkdbthd.supabase.co
+ *   SUPABASE_ANON_KEY         → anon key (solo lectura; política SELECT pública)
+ *   SUPABASE_SERVICE_ROLE_KEY → service role key (bypasea RLS; solo para escritura)
  *
  * Flujo:
  *   1. Lee live_cache de Supabase
@@ -27,12 +28,24 @@ const API_BASE     = 'https://v3.football.api-sports.io'
 const LIVE_STATUSES     = new Set(['1H', '2H', 'HT', 'ET', 'P', 'BT'])
 const FINISHED_STATUSES = new Set(['FT', 'AET', 'PEN'])
 
-// ── Supabase client (server-side, usa process.env) ────────────────────
-function getSupabase() {
+// ── Clientes Supabase (principio de mínimo privilegio) ───────────────
+// READ  — anon key. RLS permite SELECT público en live_cache.
+// WRITE — service_role key. Bypasea RLS; es el único que puede UPSERT.
+//         Nunca sale al cliente: solo existe en el entorno de Vercel.
+function getReadClient() {
   const url = process.env.SUPABASE_URL
   const key = process.env.SUPABASE_ANON_KEY
   if (!url || !key) throw new Error('Missing SUPABASE_URL / SUPABASE_ANON_KEY')
   return createClient(url, key)
+}
+
+function getWriteClient() {
+  const url        = process.env.SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !serviceKey) throw new Error('Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY')
+  return createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
 }
 
 // ── Transformar fixture de API-Football al shape de matches.js ────────
@@ -65,10 +78,11 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end()
 
-  const supabase = getSupabase()
+  const readDb  = getReadClient()
+  const writeDb = getWriteClient()
 
-  // 1. Leer cache ──────────────────────────────────────────────────────
-  const { data: cacheRow, error: cacheErr } = await supabase
+  // 1. Leer cache (anon key — política SELECT pública) ─────────────────
+  const { data: cacheRow, error: cacheErr } = await readDb
     .from('live_cache')
     .select('payload, updated_at')
     .eq('id', 1)
@@ -109,8 +123,8 @@ export default async function handler(req, res) {
 
       freshMatches = json.response.map(transform)
 
-      // 4. Guardar cache ─────────────────────────────────────────────
-      const { error: upsertErr } = await supabase
+      // 4. Guardar cache (service_role — bypasea RLS) ───────────────
+      const { error: upsertErr } = await writeDb
         .from('live_cache')
         .upsert({ id: 1, payload: freshMatches, updated_at: new Date().toISOString() })
 
