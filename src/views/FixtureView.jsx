@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getFixture } from '../services/partidos.js'
+import { flag } from '../utils/flags.js'
 
 // NOTA: el campo `estado` de cada partido es manual — lo actualiza el admin
 // al resolver partidos con /api/admin/resolve-match. No se actualiza
@@ -102,7 +103,10 @@ function MatchCard({ partido }) {
 
       {/* Teams + score or "vs" */}
       <div className="flex items-center gap-2">
-        <span className="flex-1 text-right font-display text-sm leading-tight">{local}</span>
+        <div className="flex flex-1 items-center justify-end gap-1.5">
+          <span className="font-display text-sm leading-tight text-right">{local}</span>
+          <span className="text-lg leading-none">{flag(local)}</span>
+        </div>
 
         {isFinal || isLive ? (
           <>
@@ -118,7 +122,10 @@ function MatchCard({ partido }) {
           <span className="w-12 text-center font-sans text-xs text-ink/30">vs</span>
         )}
 
-        <span className="flex-1 font-display text-sm leading-tight">{visitante}</span>
+        <div className="flex flex-1 items-center gap-1.5">
+          <span className="text-lg leading-none">{flag(visitante)}</span>
+          <span className="font-display text-sm leading-tight">{visitante}</span>
+        </div>
       </div>
 
       {/* Finished matches: show date below */}

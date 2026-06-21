@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getLiveMatches } from '../services/matches.js'
+import { flag } from '../utils/flags.js'
 
 /**
  * LiveScoreboard — marcador en vivo con fetch real + polling cada 45s.
@@ -16,18 +17,6 @@ import { getLiveMatches } from '../services/matches.js'
  */
 
 const POLL_INTERVAL_MS = 45_000   // 45 s — balance entre frescura y cuota de API
-
-// Mapa de código ISO → emoji de bandera (los más comunes del Mundial 2026).
-const FLAG_MAP = {
-  Argentina: '🇦🇷', México: '🇲🇽', Brazil: '🇧🇷', France: '🇫🇷',
-  England: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', Germany: '🇩🇪', Spain: '🇪🇸', Portugal: '🇵🇹',
-  Netherlands: '🇳🇱', Uruguay: '🇺🇾', Colombia: '🇨🇴', Ecuador: '🇪🇨',
-  'United States': '🇺🇸', Canada: '🇨🇦', Morocco: '🇲🇦', Japan: '🇯🇵',
-  'South Korea': '🇰🇷', Australia: '🇦🇺', Senegal: '🇸🇳', Ghana: '🇬🇭',
-  Croatia: '🇭🇷', Serbia: '🇷🇸', Switzerland: '🇨🇭', Belgium: '🇧🇪',
-  Denmark: '🇩🇰', Poland: '🇵🇱', Mexico: '🇲🇽', Chile: '🇨🇱',
-}
-const flag = (name) => FLAG_MAP[name] ?? '🏳️'
 
 function pickMatch(matches) {
   if (!matches?.length) return null
