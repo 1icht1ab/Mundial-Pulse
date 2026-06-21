@@ -29,7 +29,7 @@
 
 const LIVE_API_URL =
   import.meta.env.VITE_LIVE_API_URL ??
-  'https://mundial-pulse.vercel.app/api/live'
+  '/api/live'
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
