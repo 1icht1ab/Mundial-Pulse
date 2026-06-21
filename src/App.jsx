@@ -26,7 +26,7 @@ export default function App() {
   // Ruta /admin — fuera del shell normal (sin nav, sin header de app)
   if (window.location.pathname === '/admin') return <AdminView />
 
-  const [lang, setLang] = useState('ES')
+  // const [lang, setLang] = useState('ES')  // re-enable when i18n is wired
   const [activeTab, setActiveTab] = useState('hoy')
 
   const ActiveView = VIEWS[activeTab]
@@ -49,6 +49,7 @@ export default function App() {
           </div>
         </div>
 
+        {/* Lang toggle — hidden until i18n is wired up; re-enable useState above too
         <button
           onClick={() => setLang((l) => (l === 'ES' ? 'EN' : 'ES'))}
           className="rounded-full border-[3px] border-ink bg-white px-3 py-1.5 font-display text-sm shadow-sticker-sm transition-transform active:translate-y-0.5"
@@ -56,6 +57,7 @@ export default function App() {
         >
           {lang} ⇄ {lang === 'ES' ? 'EN' : 'ES'}
         </button>
+        */}
       </header>
 
       {/* ── Vista activa (conmutada por estado) ───────────────────── */}
