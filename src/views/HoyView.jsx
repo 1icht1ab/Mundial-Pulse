@@ -32,8 +32,11 @@ export default function HoyView({ onNavigate }) {
         </div>
       </section>
 
-      <button className="btn-pop w-full bg-brand-coral text-white">
-        🎟️ JUGÁ LA QUINIELA
+      <button className="btn-pop w-full flex-col bg-brand-coral text-white">
+        <span>🎟️ JUGÁ LA QUINIELA</span>
+        <span className="text-[11px] font-sans font-normal normal-case tracking-normal opacity-90">
+          Predecí los resultados, sumá puntos por cada acierto, subí en el Ranking.
+        </span>
       </button>
 
       <section className="sticker-card bg-white p-4">
