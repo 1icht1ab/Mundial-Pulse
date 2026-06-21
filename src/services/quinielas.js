@@ -23,6 +23,11 @@ const TABLE = 'quinielas'
 
 // ── Escritura (anon ✅) ──────────────────────────────────────────────
 
+// Formato canónico de picks (desde el rebuild en React):
+// { "<numero_partido>": { "h": <int>, "a": <int> }, ... }
+// numero_partido es el campo `numero` de la tabla `partidos`, como string.
+// NO usar el formato legacy de la vanilla (match_N / homeGoals / awayGoals) — descartado.
+
 /**
  * Guarda el set completo de predicciones de un usuario.
  *
