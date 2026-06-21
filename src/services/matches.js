@@ -36,7 +36,9 @@ const LIVE_API_URL =
 async function fetchMatches() {
   const res = await fetch(LIVE_API_URL)
   if (!res.ok) throw new Error(`HTTP ${res.status} — ${LIVE_API_URL}`)
-  return res.json()
+  const data = await res.json()
+  // API returns either a single match object or an array — normalize to array
+  return Array.isArray(data) ? data : (data ? [data] : [])
 }
 
 // ── Exports ──────────────────────────────────────────────────────────
