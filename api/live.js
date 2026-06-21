@@ -18,15 +18,17 @@
  *   1. Lee live_cache de Supabase
  *   2. Si tiene < 60s → devuelve cache (sin llamar a la API externa)
  *   3. Si está vencido → llama ?live=all, filtra league.id=1, guarda y devuelve
- *   4. Si la API externa falla → devuelve el cache vencido (nunca 500)
- *   5. Si no hay cache en absoluto → devuelve [] (nunca 500)
+ *   4. Si la API externa falla → devuelve el cache si tiene < STALE_MAX_MS (10min); si no, []
+ *      Evita que partidos finalizados queden como "EN VIVO" indefinidamente si la API se cae.
+ *   5. Si no hay cache o es muy viejo → devuelve [] (nunca 500)
  */
 
 import { createClient } from '@supabase/supabase-js'
 
 // ── Constantes ────────────────────────────────────────────────────────
-const CACHE_TTL_MS = 60_000                             // 60 s
-const WC_LEAGUE    = 1                                  // FIFA World Cup — filtro post-fetch sobre live=all
+const CACHE_TTL_MS  = 60_000                             // 60 s
+const STALE_MAX_MS  = 10 * 60_000                        // 10 min: máximo que se sirve cache vencido si la API falla
+const WC_LEAGUE     = 1                                  // FIFA World Cup — filtro post-fetch sobre live=all
 const API_BASE     = 'https://v3.football.api-sports.io'
 
 const LIVE_STATUSES     = new Set(['1H', '2H', 'HT', 'ET', 'P', 'BT'])
@@ -142,13 +144,16 @@ export default async function handler(req, res) {
     }
   }
 
-  // 5. API falló → devolver cache vencido si existe (nunca 500) ───────
-  if (cacheRow?.payload) {
-    console.warn('[api/live] Serving stale cache due to API failure or missing key')
+  // 5. API falló → cache reciente (< STALE_MAX_MS) como fallback seguro ─
+  //    Si el cache es muy viejo preferimos [] antes que persistir partidos
+  //    fantasma (ej: un partido que terminó hace rato sigue como "EN VIVO").
+  if (cacheRow?.payload && cacheAgeMs < STALE_MAX_MS) {
+    console.warn(`[api/live] API unavailable — serving ${Math.round(cacheAgeMs / 1000)}s stale cache`)
     return res.status(200).json(cacheRow.payload)
   }
 
-  // 6. Sin cache y sin API → [] ────────────────────────────────────────
-  console.error('[api/live] No cache and no API data available — returning []')
+  // 6. Cache ausente o muy vencido (> STALE_MAX_MS) → []
+  //    Preferimos datos vacíos a mostrar partidos "EN VIVO" ya terminados.
+  console.warn('[api/live] Stale cache too old or absent — returning [] to avoid ghost live matches')
   return res.status(200).json([])
 }
