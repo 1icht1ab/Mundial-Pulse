@@ -13,8 +13,8 @@
  *   { matchNumero: number, resultadoLocal: number, resultadoVisitante: number }
  *
  * Formato de picks en quinielas.picks:
- *   { "1": { "local": 2, "visitante": 0 }, "2": { "local": 1, "visitante": 1 }, ... }
- *   Clave = numero del partido como string (keys de JSON siempre son string).
+ *   { "34": { "h": 0, "a": 0 }, "35": { "h": 1, "a": 2 }, ... }
+ *   h = goles local, a = goles visitante. Clave = numero de partido como string.
  *
  * Sistema de puntos:
  *   3 pts → resultado exacto (local y visitante coinciden)
@@ -38,8 +38,8 @@ function outcome(local, visitante) {
 }
 
 function calcPoints(pick, realLocal, realVisitante) {
-  if (pick.local === realLocal && pick.visitante === realVisitante) return 3
-  if (outcome(pick.local, pick.visitante) === outcome(realLocal, realVisitante)) return 1
+  if (pick.h === realLocal && pick.a === realVisitante) return 3
+  if (outcome(pick.h, pick.a) === outcome(realLocal, realVisitante)) return 1
   return 0
 }
 
@@ -106,7 +106,7 @@ export default async function handler(req, res) {
 
   for (const q of quinielas) {
     const pick = q.picks?.[key]
-    if (!pick || pick.local == null || pick.visitante == null) continue
+    if (!pick || pick.h == null || pick.a == null) continue
 
     const pts = calcPoints(pick, resultadoLocal, resultadoVisitante)
 
