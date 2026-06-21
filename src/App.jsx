@@ -8,6 +8,7 @@ import ComunidadView from './views/ComunidadView.jsx'
 import AdminView from './views/AdminView.jsx'
 import PredictView from './views/PredictView.jsx'
 import StickersView from './views/StickersView.jsx'
+import FixtureView from './views/FixtureView.jsx'
 
 // Mapa pestaña → componente de pantalla. El componente central se alterna
 // dinámicamente según `activeTab`.
@@ -18,6 +19,7 @@ const VIEWS = {
   comunidad: ComunidadView,
   predice: PredictView,
   stickers: StickersView,
+  fixture: FixtureView,
 }
 
 export default function App() {

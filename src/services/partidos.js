@@ -13,6 +13,25 @@ import { supabase } from '../lib/supabaseClient.js'
  * @param {{ estado?: 'programado' | 'en_curso' | 'finalizado' }} options
  * @returns {Promise<{ data: Array, error: Error | null }>}
  */
+/**
+ * Devuelve TODOS los partidos (todos los estados) ordenados por fecha.
+ * Incluye resultado_local/resultado_visitante para el fixture.
+ */
+export async function getFixture() {
+  try {
+    const { data, error } = await supabase
+      .from('partidos')
+      .select('numero, local, visitante, grupo, estado, fecha, resultado_local, resultado_visitante')
+      .order('fecha', { ascending: true })
+
+    if (error) throw error
+    return { data: data ?? [], error: null }
+  } catch (error) {
+    console.error('[partidos] getFixture failed:', error.message)
+    return { data: [], error }
+  }
+}
+
 export async function getPartidos({ estado = 'programado' } = {}) {
   try {
     const { data, error } = await supabase

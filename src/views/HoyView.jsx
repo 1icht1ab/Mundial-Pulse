@@ -16,6 +16,21 @@ export default function HoyView({ onNavigate }) {
     <div className="space-y-5">
       <LiveScoreboard />
 
+      {/* Fixture shortcut — junto al marcador en vivo (relación temática) */}
+      <button
+        onClick={() => onNavigate?.('fixture')}
+        className="sticker-card w-full flex items-center justify-between bg-white px-4 py-3 text-left transition-transform active:translate-y-0.5"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-xl">📅</span>
+          <div className="leading-tight">
+            <p className="font-display text-sm tracking-wide">FIXTURE COMPLETO</p>
+            <p className="font-sans text-[10px] text-ink/50">Todos los partidos · Hora local</p>
+          </div>
+        </div>
+        <span className="font-sans text-sm text-ink/30">→</span>
+      </button>
+
       <section>
         <SectionTitle>Jugá ahora</SectionTitle>
         <div className="grid grid-cols-2 gap-3">
