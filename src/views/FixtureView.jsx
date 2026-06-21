@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getFixture } from '../services/partidos.js'
 import { getLiveMatches } from '../services/matches.js'
-import { flag } from '../utils/flags.js'
+import { flagCode } from '../utils/flags.js'
 
 // NOTA: el campo `estado` de cada partido es manual — lo actualiza el admin
 // al resolver partidos con /api/admin/resolve-match. No se actualiza
@@ -130,6 +130,8 @@ function MatchCard({ partido, liveMatch }) {
   const scoreH     = liveMatch ? (liveMatch.result?.h ?? '?') : resultado_local
   const scoreA     = liveMatch ? (liveMatch.result?.a ?? '?') : resultado_visitante
   const liveMinute = liveMatch?.minute ?? null
+  const localCode     = flagCode(local)
+  const visitanteCode = flagCode(visitante)
 
   return (
     <div className={`sticker-card p-3 ${isLive ? 'bg-brand-coral/5' : 'bg-white'}`}>
@@ -159,7 +161,9 @@ function MatchCard({ partido, liveMatch }) {
       <div className="flex items-center gap-2">
         <div className="flex flex-1 items-center justify-end gap-1.5">
           <span className="font-display text-sm leading-tight text-right">{local}</span>
-          <span className="text-lg leading-none">{flag(local)}</span>
+          {localCode && (
+            <span className={`fi fi-${localCode}`} style={{ fontSize: '1.1rem', flexShrink: 0 }} />
+          )}
         </div>
 
         {isFinal || isLive ? (
@@ -177,7 +181,9 @@ function MatchCard({ partido, liveMatch }) {
         )}
 
         <div className="flex flex-1 items-center gap-1.5">
-          <span className="text-lg leading-none">{flag(visitante)}</span>
+          {visitanteCode && (
+            <span className={`fi fi-${visitanteCode}`} style={{ fontSize: '1.1rem', flexShrink: 0 }} />
+          )}
           <span className="font-display text-sm leading-tight">{visitante}</span>
         </div>
       </div>

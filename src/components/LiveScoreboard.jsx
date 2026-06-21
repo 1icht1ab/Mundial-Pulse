@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getLiveMatches } from '../services/matches.js'
-import { flag } from '../utils/flags.js'
+import { flagCode } from '../utils/flags.js'
 
 /**
  * LiveScoreboard — marcador en vivo con fetch real + polling cada 45s.
@@ -119,10 +119,18 @@ export default function LiveScoreboard() {
 // ── Sub-componentes ─────────────────────────────────────────────────
 
 function Team({ name }) {
+  const code = flagCode(name)
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className="grid h-14 w-14 place-items-center rounded-full border-[3px] border-ink bg-white text-3xl shadow-sticker-sm">
-        {flag(name)}
+      <span className="h-14 w-14 rounded-full border-[3px] border-ink overflow-hidden shadow-sticker-sm bg-white">
+        {code ? (
+          <span
+            className={`fi fi-${code} block h-full w-full`}
+            style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
+          />
+        ) : (
+          <span className="grid h-full w-full place-items-center text-2xl">🏳️</span>
+        )}
       </span>
       <span className="font-display text-sm tracking-wide text-center leading-tight max-w-[4.5rem]">
         {name}
