@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { getFixture } from '../services/partidos.js'
+import { getLiveMatches } from '../services/matches.js'
 import { flag } from '../utils/flags.js'
 
 // NOTA: el campo `estado` de cada partido es manual — lo actualiza el admin
 // al resolver partidos con /api/admin/resolve-match. No se actualiza
 // automáticamente cuando un partido arranca en la realidad. Un partido puede
 // aparecer como 'programado' aunque esté en curso en ese momento. Esto es una
-// limitación conocida; la resolución automática vía live-cache queda pendiente.
+// limitación conocida; el cruce con /api/live (abajo) compensa este gap.
 
 const formatLocalDate = (iso) =>
   new Date(iso).toLocaleString('es', {
@@ -17,15 +18,58 @@ const formatLocalDate = (iso) =>
     minute: '2-digit',
   })
 
+// ── Cruce con /api/live ───────────────────────────────────────────────
+// La API devuelve nombres en inglés; la DB los tiene en español.
+// Se normalizan quitando tildes/mayúsculas y se aplica un diccionario
+// de sinónimos ES→EN para los casos que no coinciden por transliteración.
+
+const SYNONYMS = {
+  'espana':         'spain',
+  'belgica':        'belgium',
+  'irak':           'iraq',
+  'noruega':        'norway',
+  'jordania':       'jordan',
+  'argelia':        'algeria',
+  'arabia saudita': 'saudi arabia',
+  'cabo verde':     'cape verde',
+  'uzbekistan':     'uzbekistan',
+  'inglaterra':     'england',
+  'panama':         'panama',
+  'croacia':        'croatia',
+  'rd congo':       'dr congo',
+  'francia':        'france',
+}
+
+const normalizeTeam = (s) => {
+  const n = s
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '') // quita tildes
+    .replace(/[^a-z0-9 ]/g, '').trim().replace(/\s+/g, ' ')
+  return SYNONYMS[n] ?? n
+}
+
+function findLiveMatch(partido, liveMatches) {
+  const ln = normalizeTeam(partido.local)
+  const vn = normalizeTeam(partido.visitante)
+  return liveMatches.find(m =>
+    normalizeTeam(m.home) === ln && normalizeTeam(m.away) === vn
+  ) ?? null
+}
+
+// ── Componente principal ─────────────────────────────────────────────
+
 export default function FixtureView({ onNavigate }) {
-  const [partidos, setPartidos] = useState([])
-  const [loading,  setLoading]  = useState(true)
+  const [partidos,    setPartidos]    = useState([])
+  const [liveMatches, setLiveMatches] = useState([])
+  const [loading,     setLoading]     = useState(true)
 
   useEffect(() => {
-    getFixture().then(({ data }) => {
-      setPartidos(data)
-      setLoading(false)
-    })
+    Promise.all([getFixture(), getLiveMatches()])
+      .then(([{ data: fix }, { data: live }]) => {
+        setPartidos(fix)
+        setLiveMatches(live)
+        setLoading(false)
+      })
   }, [])
 
   return (
@@ -61,7 +105,11 @@ export default function FixtureView({ onNavigate }) {
       ) : (
         <div className="space-y-2">
           {partidos.map(p => (
-            <MatchCard key={p.numero} partido={p} />
+            <MatchCard
+              key={p.numero}
+              partido={p}
+              liveMatch={findLiveMatch(p, liveMatches)}
+            />
           ))}
         </div>
       )}
@@ -72,10 +120,16 @@ export default function FixtureView({ onNavigate }) {
 
 // ── Sub-componentes ───────────────────────────────────────────────────
 
-function MatchCard({ partido }) {
+function MatchCard({ partido, liveMatch }) {
   const { local, visitante, grupo, estado, fecha, resultado_local, resultado_visitante } = partido
-  const isFinal = estado === 'finalizado'
-  const isLive  = estado === 'en_curso'
+
+  // liveMatch tiene precedencia: permite EN VIVO aunque partidos.estado
+  // todavía diga 'programado' (el campo estado es manual, no auto-actualizado).
+  const isFinal    = !liveMatch && estado === 'finalizado'
+  const isLive     = !!liveMatch || estado === 'en_curso'
+  const scoreH     = liveMatch ? (liveMatch.result?.h ?? '?') : resultado_local
+  const scoreA     = liveMatch ? (liveMatch.result?.a ?? '?') : resultado_visitante
+  const liveMinute = liveMatch?.minute ?? null
 
   return (
     <div className={`sticker-card p-3 ${isLive ? 'bg-brand-coral/5' : 'bg-white'}`}>
@@ -88,7 +142,7 @@ function MatchCard({ partido }) {
 
         {isLive ? (
           <span className="pop-tag bg-brand-coral text-white border-brand-coral text-[10px] animate-pulse">
-            🔴 EN VIVO
+            🔴 EN VIVO{liveMinute ? ` · ${liveMinute}` : ''}
           </span>
         ) : isFinal ? (
           <span className="pop-tag bg-ink/10 text-ink/50 border-ink/10 text-[10px]">
@@ -111,11 +165,11 @@ function MatchCard({ partido }) {
         {isFinal || isLive ? (
           <>
             <span className="w-7 text-center font-display text-xl font-bold leading-none">
-              {resultado_local ?? '?'}
+              {scoreH ?? '?'}
             </span>
             <span className="font-display text-base text-ink/20">·</span>
             <span className="w-7 text-center font-display text-xl font-bold leading-none">
-              {resultado_visitante ?? '?'}
+              {scoreA ?? '?'}
             </span>
           </>
         ) : (
