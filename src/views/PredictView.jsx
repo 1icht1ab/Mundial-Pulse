@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getPartidos } from '../services/partidos.js'
 import { submitPrediction } from '../services/quinielas.js'
+import { grantQuinielaPack } from '../services/stickers.js'
 
 // Best-effort duplicate guard — client-side only.
 // No previene múltiples envíos entre navegadores/dispositivos distintos.
@@ -105,6 +106,7 @@ export default function PredictView({ onNavigate }) {
       localStorage.setItem(LS_KEY, JSON.stringify(quinielaData))
     } catch { /* modo privado o storage lleno — continuar igual */ }
 
+    grantQuinielaPack() // +1 sobre extra si es el primer envío del día
     setStoredQuiniela(quinielaData)
     setSubmitted(true)
     setSubmitting(false)

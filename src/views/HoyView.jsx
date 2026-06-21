@@ -7,7 +7,7 @@ import LiveScoreboard from '../components/LiveScoreboard.jsx'
 const QUICK_ACTIONS = [
   { id: 'predice', emoji: '🔮', label: 'Predice', bg: 'bg-brand-lime text-ink', tab: 'predice' },
   { id: 'arcade', emoji: '🕹️', label: 'Arcade', bg: 'bg-brand-purple text-white', tab: 'arcade' },
-  { id: 'stickers', emoji: '✨', label: 'Stickers', bg: 'bg-brand-coral text-white' },
+  { id: 'stickers', emoji: '✨', label: 'Stickers', bg: 'bg-brand-coral text-white', tab: 'stickers' },
   { id: 'ranking', emoji: '🏆', label: 'Ranking', bg: 'bg-white text-ink' },
 ]
 

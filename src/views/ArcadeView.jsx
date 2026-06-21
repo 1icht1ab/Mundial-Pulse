@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { grantArcadePack } from '../services/stickers.js'
 
 // ── Fases del box breathing (4s cada una) ──────────────────────────
 const PHASES = [
@@ -25,6 +26,11 @@ export default function ArcadeView() {
     )
     return () => clearInterval(t)
   }, [])
+
+  // Primer pop del día → sobre extra en Stickers
+  useEffect(() => {
+    if (score === 1) grantArcadePack()
+  }, [score])
 
   // Añadir balón en la posición exacta del tap/clic dentro del arena.
   const addBall = useCallback((e) => {
