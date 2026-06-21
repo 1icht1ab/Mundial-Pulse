@@ -5,6 +5,7 @@ import HoyView from './views/HoyView.jsx'
 import ArcadeView from './views/ArcadeView.jsx'
 import TiendaView from './views/TiendaView.jsx'
 import ComunidadView from './views/ComunidadView.jsx'
+import AdminView from './views/AdminView.jsx'
 
 // Mapa pestaña → componente de pantalla. El componente central se alterna
 // dinámicamente según `activeTab`.
@@ -16,6 +17,9 @@ const VIEWS = {
 }
 
 export default function App() {
+  // Ruta /admin — fuera del shell normal (sin nav, sin header de app)
+  if (window.location.pathname === '/admin') return <AdminView />
+
   const [lang, setLang] = useState('ES')
   const [activeTab, setActiveTab] = useState('hoy')
 
