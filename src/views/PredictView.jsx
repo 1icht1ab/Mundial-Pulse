@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { getPartidos } from '../services/partidos.js'
 import { submitPrediction } from '../services/quinielas.js'
 
-// picks state: { "34": { h: "1", a: "0" } } — strings vacías = sin completar
-// canonical output: { "34": { h: 1, a: 0 } } — solo partidos con ambos goles llenos
+// Best-effort duplicate guard — client-side only.
+// No previene múltiples envíos entre navegadores/dispositivos distintos.
+// La fuente de verdad son las filas en Supabase, no este key.
+const LS_KEY = 'mp_quiniela'
 
 const formatDate = (iso) =>
   new Date(iso).toLocaleString('es-AR', {
@@ -25,17 +27,38 @@ function buildCanonicalPicks(partidos, picks) {
   return result
 }
 
+function buildPickDisplay(partidos, canonicalPicks) {
+  const display = {}
+  for (const p of partidos) {
+    const key = String(p.numero)
+    if (canonicalPicks[key]) {
+      display[key] = {
+        local: p.local, visitante: p.visitante,
+        h: canonicalPicks[key].h, a: canonicalPicks[key].a,
+      }
+    }
+  }
+  return display
+}
+
 export default function PredictView({ onNavigate }) {
-  const [partidos,    setPartidos]    = useState([])
-  const [loading,     setLoading]     = useState(true)
-  const [picks,       setPicks]       = useState({})
-  const [alias,       setAlias]       = useState('')
-  const [contacto,    setContacto]    = useState('')
-  const [submitting,  setSubmitting]  = useState(false)
-  const [submitted,   setSubmitted]   = useState(false)
-  const [submitError, setSubmitError] = useState(null)
+  const [partidos,       setPartidos]       = useState([])
+  const [loading,        setLoading]        = useState(true)
+  const [picks,          setPicks]          = useState({})
+  const [alias,          setAlias]          = useState('')
+  const [contacto,       setContacto]       = useState('')
+  const [submitting,     setSubmitting]     = useState(false)
+  const [submitted,      setSubmitted]      = useState(false)
+  const [submitError,    setSubmitError]    = useState(null)
+  const [storedQuiniela, setStoredQuiniela] = useState(null)
+  const [forceNew,       setForceNew]       = useState(false)
 
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEY)
+      if (raw) setStoredQuiniela(JSON.parse(raw))
+    } catch { /* entrada corrupta — ignorar */ }
+
     getPartidos().then(({ data }) => {
       setPartidos(data)
       setLoading(false)
@@ -54,23 +77,40 @@ export default function PredictView({ onNavigate }) {
     setSubmitting(true)
     setSubmitError(null)
 
-    const canonicalPicks = buildCanonicalPicks(partidos, picks)
+    const canonicalPicks  = buildCanonicalPicks(partidos, picks)
+    const trimmedAlias    = alias.trim()
+    const trimmedContacto = contacto.trim() || null
 
     const { error } = await submitPrediction({
-      alias:    alias.trim(),
-      contacto: contacto.trim() || null,
+      alias:    trimmedAlias,
+      contacto: trimmedContacto,
       picks:    canonicalPicks,
     })
 
     if (error) {
       setSubmitError(error.message)
-    } else {
-      setSubmitted(true)
+      setSubmitting(false)
+      return
     }
+
+    // Guardar en localStorage (sobreescribe el envío anterior si hay uno)
+    const quinielaData = {
+      alias:       trimmedAlias,
+      contacto:    trimmedContacto,
+      picks:       canonicalPicks,
+      pickDisplay: buildPickDisplay(partidos, canonicalPicks),
+      submittedAt: new Date().toISOString(),
+    }
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(quinielaData))
+    } catch { /* modo privado o storage lleno — continuar igual */ }
+
+    setStoredQuiniela(quinielaData)
+    setSubmitted(true)
     setSubmitting(false)
   }
 
-  // ── Estado: enviado ────────────────────────────────────────────────
+  // ── Estado: recién enviado ─────────────────────────────────────────
   if (submitted) {
     return (
       <div className="space-y-5">
@@ -78,13 +118,10 @@ export default function PredictView({ onNavigate }) {
           <p className="text-5xl">🎉</p>
           <h2 className="font-display text-2xl tracking-wide">¡Quiniela enviada!</h2>
           <p className="font-sans text-sm">
-            Tus picks quedaron guardados, <strong>{alias}</strong>. Los puntos se calculan
+            Tus picks quedaron guardados, <strong>{alias.trim()}</strong>. Los puntos se calculan
             automáticamente a medida que se resuelvan los partidos.
           </p>
-          <button
-            onClick={() => onNavigate?.('hoy')}
-            className="btn-pop bg-ink text-white"
-          >
+          <button onClick={() => onNavigate?.('hoy')} className="btn-pop bg-ink text-white">
             ← VOLVER AL INICIO
           </button>
         </div>
@@ -92,11 +129,21 @@ export default function PredictView({ onNavigate }) {
     )
   }
 
-  // ── Vista principal ────────────────────────────────────────────────
+  // ── Estado: ya existe envío previo (localStorage hit) ─────────────
+  if (storedQuiniela && !forceNew) {
+    return (
+      <AlreadySubmittedView
+        quiniela={storedQuiniela}
+        onForceNew={() => setForceNew(true)}
+        onNavigate={onNavigate}
+      />
+    )
+  }
+
+  // ── Vista principal: formulario ────────────────────────────────────
   return (
     <div className="space-y-4">
 
-      {/* Header */}
       <div className="sticker-card bg-brand-purple p-4 text-center text-white">
         <div className="flex items-center justify-between mb-1">
           <button
@@ -116,7 +163,6 @@ export default function PredictView({ onNavigate }) {
         </p>
       </div>
 
-      {/* Lista de partidos */}
       {loading ? (
         <SkeletonMatches />
       ) : partidos.length === 0 ? (
@@ -139,7 +185,6 @@ export default function PredictView({ onNavigate }) {
             />
           ))}
 
-          {/* Alias + contacto */}
           <div className="sticker-card bg-white p-4 space-y-3">
             <label className="block">
               <span className="mb-1 block text-xs font-bold uppercase tracking-widest text-ink/60">
@@ -182,6 +227,64 @@ export default function PredictView({ onNavigate }) {
 
         </form>
       )}
+    </div>
+  )
+}
+
+// ── AlreadySubmittedView ───────────────────────────────────────────────
+
+function AlreadySubmittedView({ quiniela, onForceNew, onNavigate }) {
+  const { alias, submittedAt, pickDisplay = {} } = quiniela
+  const pickEntries = Object.entries(pickDisplay)
+
+  return (
+    <div className="space-y-4">
+
+      <button
+        onClick={() => onNavigate?.('hoy')}
+        className="text-sm text-ink/60 hover:text-ink font-sans transition-colors"
+      >
+        ← Volver al inicio
+      </button>
+
+      <div className="sticker-card bg-brand-lime p-5 text-ink space-y-4">
+        <div className="text-center space-y-1">
+          <p className="text-4xl">✅</p>
+          <h2 className="font-display text-xl tracking-wide">Ya enviaste tu quiniela</h2>
+          <p className="font-sans text-xs text-ink/60">
+            <strong>{alias}</strong> · {formatDate(submittedAt)}
+          </p>
+        </div>
+
+        {pickEntries.length > 0 ? (
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-ink/50">Tus picks</p>
+            {pickEntries.map(([key, pick]) => (
+              <div key={key} className="flex items-center gap-2 font-sans text-sm">
+                <span className="flex-1 text-right leading-tight">{pick.local}</span>
+                <span className="font-display text-base shrink-0">{pick.h} – {pick.a}</span>
+                <span className="flex-1 leading-tight">{pick.visitante}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-sm text-ink/50 font-sans">Sin picks registrados.</p>
+        )}
+      </div>
+
+      <div className="sticker-card bg-white p-4 text-center space-y-2">
+        <p className="font-sans text-xs text-ink/50 leading-relaxed">
+          Los envíos anteriores no se pueden editar ni borrar.
+          Si continuás, se crea una entrada <em>nueva y separada</em> en el ranking.
+        </p>
+        <button
+          onClick={onForceNew}
+          className="font-sans text-sm text-brand-purple underline underline-offset-2 hover:text-ink transition-colors"
+        >
+          Enviar otra de todos modos →
+        </button>
+      </div>
+
     </div>
   )
 }
