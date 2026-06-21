@@ -6,6 +6,7 @@ import ArcadeView from './views/ArcadeView.jsx'
 import TiendaView from './views/TiendaView.jsx'
 import ComunidadView from './views/ComunidadView.jsx'
 import AdminView from './views/AdminView.jsx'
+import PredictView from './views/PredictView.jsx'
 
 // Mapa pestaña → componente de pantalla. El componente central se alterna
 // dinámicamente según `activeTab`.
@@ -14,6 +15,7 @@ const VIEWS = {
   arcade: ArcadeView,
   tienda: TiendaView,
   comunidad: ComunidadView,
+  predice: PredictView,
 }
 
 export default function App() {

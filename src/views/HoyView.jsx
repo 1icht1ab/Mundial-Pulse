@@ -5,7 +5,7 @@ import LiveScoreboard from '../components/LiveScoreboard.jsx'
  * accesos rápidos y el "pulso del día".
  */
 const QUICK_ACTIONS = [
-  { id: 'predice', emoji: '🔮', label: 'Predice', bg: 'bg-brand-lime text-ink' },
+  { id: 'predice', emoji: '🔮', label: 'Predice', bg: 'bg-brand-lime text-ink', tab: 'predice' },
   { id: 'arcade', emoji: '🕹️', label: 'Arcade', bg: 'bg-brand-purple text-white', tab: 'arcade' },
   { id: 'stickers', emoji: '✨', label: 'Stickers', bg: 'bg-brand-coral text-white' },
   { id: 'ranking', emoji: '🏆', label: 'Ranking', bg: 'bg-white text-ink' },
@@ -33,7 +33,7 @@ export default function HoyView({ onNavigate }) {
       </section>
 
       <div>
-        <button className="btn-pop w-full bg-brand-coral text-white">
+        <button onClick={() => onNavigate?.('predice')} className="btn-pop w-full bg-brand-coral text-white">
           🎟️ JUGÁ LA QUINIELA
         </button>
         <p className="mt-1.5 text-center text-[11px] font-sans text-ink/50">
