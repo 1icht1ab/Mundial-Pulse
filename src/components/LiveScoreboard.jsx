@@ -17,12 +17,6 @@ import { getLiveMatches } from '../services/matches.js'
 
 const POLL_INTERVAL_MS = 45_000   // 45 s — balance entre frescura y cuota de API
 
-// Datos de demo para mostrar algo mientras no hay partidos reales.
-const DEMO_MATCH = {
-  n: 0, home: 'Argentina', away: 'México', group: 'Grupo C',
-  live: true, minute: "67'", result: { h: 1, a: 0 }, status: 'live',
-}
-
 // Mapa de código ISO → emoji de bandera (los más comunes del Mundial 2026).
 const FLAG_MAP = {
   Argentina: '🇦🇷', México: '🇲🇽', Brazil: '🇧🇷', France: '🇫🇷',
@@ -68,7 +62,7 @@ export default function LiveScoreboard() {
     return () => clearInterval(t)
   }, [fetchMatches])
 
-  const match = pickMatch(matches) ?? (loading ? null : DEMO_MATCH)
+  const match = pickMatch(matches)
 
   // ── Estado: cargando (primer fetch) ──────────────────────────────
   if (loading) return <SkeletonCard />
@@ -175,8 +169,8 @@ function EmptyCard({ onRetry }) {
   return (
     <div className="sticker-card overflow-hidden bg-brand-purple text-white text-center py-8 px-4 space-y-3">
       <p className="text-4xl">🏟️</p>
-      <p className="font-display text-lg tracking-wide">No hay partidos hoy</p>
-      <p className="text-sm text-white/60">Volvé cuando empiece el próximo partido.</p>
+      <p className="font-display text-lg tracking-wide">No hay partidos en vivo</p>
+      <p className="text-sm text-white/60">El Mundial no tiene partidos en curso ahora mismo.</p>
       <button
         onClick={onRetry}
         className="btn-pop bg-brand-lime text-ink text-sm mt-2"

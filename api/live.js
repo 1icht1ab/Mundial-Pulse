@@ -9,10 +9,15 @@
  *   SUPABASE_ANON_KEY         → anon key (solo lectura; política SELECT pública)
  *   SUPABASE_SERVICE_ROLE_KEY → service role key (bypasea RLS; solo para escritura)
  *
+ * Endpoint: ?live=all (sin season ni date — plan free compatible).
+ *   ⚠️  Devuelve SOLO partidos en curso ahora mismo, no el calendario completo.
+ *       Si no hay partidos del Mundial en juego, el filtrado da [] — es correcto, no un error.
+ *       Calendario de próximos partidos requiere upgrade de plan o fuente alternativa.
+ *
  * Flujo:
  *   1. Lee live_cache de Supabase
  *   2. Si tiene < 60s → devuelve cache (sin llamar a la API externa)
- *   3. Si está vencido → llama a API-Football, transforma, guarda y devuelve
+ *   3. Si está vencido → llama ?live=all, filtra league.id=1, guarda y devuelve
  *   4. Si la API externa falla → devuelve el cache vencido (nunca 500)
  *   5. Si no hay cache en absoluto → devuelve [] (nunca 500)
  */
@@ -21,8 +26,7 @@ import { createClient } from '@supabase/supabase-js'
 
 // ── Constantes ────────────────────────────────────────────────────────
 const CACHE_TTL_MS = 60_000                             // 60 s
-const WC_LEAGUE    = 1                                  // FIFA World Cup en API-Football
-const WC_SEASON    = 2026
+const WC_LEAGUE    = 1                                  // FIFA World Cup — filtro post-fetch sobre live=all
 const API_BASE     = 'https://v3.football.api-sports.io'
 
 const LIVE_STATUSES     = new Set(['1H', '2H', 'HT', 'ET', 'P', 'BT'])
@@ -102,7 +106,6 @@ export default async function handler(req, res) {
   }
 
   // 3. Cache vencido → llamar a API-Football ──────────────────────────
-  const today = new Date().toISOString().slice(0, 10)
   let freshMatches = null
 
   if (!process.env.LIVE_API_KEY) {
@@ -110,7 +113,7 @@ export default async function handler(req, res) {
   } else {
     try {
       const apiRes = await fetch(
-        `${API_BASE}/fixtures?league=${WC_LEAGUE}&season=${WC_SEASON}&date=${today}`,
+        `${API_BASE}/fixtures?live=all`,
         { headers: { 'x-apisports-key': process.env.LIVE_API_KEY } },
       )
 
@@ -121,7 +124,8 @@ export default async function handler(req, res) {
         throw new Error(`Unexpected shape: ${JSON.stringify(json).slice(0, 80)}`)
       }
 
-      freshMatches = json.response.map(transform)
+      // live=all devuelve fixtures de todas las ligas; filtramos solo Mundial (id=1)
+      freshMatches = json.response.filter(f => f.league.id === WC_LEAGUE).map(transform)
 
       // 4. Guardar cache (service_role — bypasea RLS) ───────────────
       const { error: upsertErr } = await writeDb
