@@ -83,6 +83,12 @@ export default {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%':      { transform: 'translateY(-7px)' },
         },
+        // Balones: fade+shrink suave cuando se escapan sin ser tocados
+        'ball-fade': {
+          '0%':   { transform: 'scale(1)',    opacity: '1' },
+          '40%':  { transform: 'scale(0.75)', opacity: '0.6' },
+          '100%': { transform: 'scale(0.2)',  opacity: '0' },
+        },
       },
       animation: {
         'pop-in':      'pop-in 0.25s ease-out both',
@@ -93,6 +99,7 @@ export default {
         'breathe-ring': 'breathe-ring 12s ease-in-out infinite',
         'ball-pop':    'ball-pop 0.3s cubic-bezier(0.36,0.07,0.19,0.97) forwards',
         'ball-float':  'ball-float 2s ease-in-out infinite',
+        'ball-fade':   'ball-fade 0.5s ease-in forwards',
       },
     },
   },

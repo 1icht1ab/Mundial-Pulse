@@ -8,8 +8,12 @@ const PHASES = [
   { text: 'Exhala...', emoji: '😮‍💨', bg: 'bg-brand-coral', fg: 'text-white' },
 ]
 
-// Límite de balones activos para no saturar la memoria.
-const MAX_BALLS = 18
+const MAX_BALLS        = 18
+const BALL_LIFETIME_MS = 3000  // tiempo flotando antes de empezar a escaparse
+const FADE_MS          = 500   // debe coincidir con animate-ball-fade
+const POP_MS           = 300   // debe coincidir con animate-ball-pop
+const SPAWN_MIN_MS     = 400
+const SPAWN_MAX_MS     = 900
 
 export default function ArcadeView() {
   const [phaseIdx, setPhaseIdx]   = useState(0)
@@ -17,6 +21,9 @@ export default function ArcadeView() {
   const [score, setScore]         = useState(0)
   const arenaRef                  = useRef(null)
   const ballIdRef                 = useRef(0)
+  const spawnTimerRef             = useRef(null)
+  const ballTimersRef             = useRef(new Map())   // id → timeout pendiente (despawn o remoción)
+  const handledRef                = useRef(new Set())   // ids ya reclamados (pop/fade) — guard SÍNCRONO
 
   // Ciclo de fases cada 4s (sincronizado con la animación CSS de 12s).
   useEffect(() => {
@@ -32,43 +39,87 @@ export default function ArcadeView() {
     if (score === 1) grantArcadePack()
   }, [score])
 
-  // Añadir balón en la posición exacta del tap/clic dentro del arena.
-  const addBall = useCallback((e) => {
-    // No crear un balón nuevo si el clic fue sobre uno existente.
-    if (e.target.closest('[data-ball]')) return
-    const arena = arenaRef.current
-    if (!arena) return
-
-    setBalls(prev => {
-      // Respetar el límite de activos (excluye los que ya están explotando).
-      if (prev.filter(b => !b.popping).length >= MAX_BALLS) return prev
-      const rect = arena.getBoundingClientRect()
-      const x = Math.max(8, Math.min(92, ((e.clientX - rect.left)  / rect.width)  * 100))
-      const y = Math.max(8, Math.min(92, ((e.clientY - rect.top)   / rect.height) * 100))
-      return [
-        ...prev,
-        {
-          id:      ballIdRef.current++,
-          x, y,
-          popping: false,
-          // Delay y velocidad aleatorios para flotación no sincronizada.
-          delay:   `${(Math.random() * 1.4).toFixed(2)}s`,
-          speed:   `${(1.5 + Math.random() * 1.0).toFixed(2)}s`,
-        },
-      ]
-    })
-  }, [])
-
-  // Marcar balón para explotar y sumar al contador.
-  const popBall = useCallback((id) => {
-    setBalls(prev => prev.map(b => b.id === id ? { ...b, popping: true } : b))
-    setScore(s => s + 1)
-  }, [])
-
-  // Limpiar balón del estado una vez terminó su animación de pop.
+  // Quitar definitivamente el balón del estado. La remoción se maneja con
+  // timers determinísticos (no con onAnimationEnd) para que el ciclo de vida
+  // siga funcionando aunque la pestaña esté en segundo plano y el navegador
+  // congele las animaciones CSS (en ese caso animationend nunca dispararía).
   const removeBall = useCallback((id) => {
+    const t = ballTimersRef.current.get(id)
+    if (t) clearTimeout(t)
+    ballTimersRef.current.delete(id)
+    handledRef.current.delete(id)
     setBalls(prev => prev.filter(b => b.id !== id))
   }, [])
+
+  // Balón "escapado" (despawn timer sin tap): NO suma al score. Pasa a la
+  // animación de fade y agenda su remoción real al terminar el fade.
+  // handledRef es el guard síncrono — no se puede confiar en el valor de
+  // retorno del updater de setState porque corre de forma asíncrona.
+  const fadeBall = useCallback((id) => {
+    if (handledRef.current.has(id)) return
+    handledRef.current.add(id)
+    ballTimersRef.current.delete(id)   // el despawn timer ya disparó
+    setBalls(prev => prev.map(b => b.id === id ? { ...b, fading: true } : b))
+    ballTimersRef.current.set(id, setTimeout(() => removeBall(id), FADE_MS))
+  }, [removeBall])
+
+  // Tap del usuario sobre un balón a tiempo: cancela su despawn, lo marca como
+  // popping, suma al score y agenda la remoción al terminar la animación de pop.
+  // handledRef evita doble conteo si llegan dos taps antes del re-render.
+  const popBall = useCallback((id) => {
+    if (handledRef.current.has(id)) return
+    handledRef.current.add(id)
+    const despawn = ballTimersRef.current.get(id)
+    if (despawn) clearTimeout(despawn)
+    setBalls(prev => prev.map(b => b.id === id ? { ...b, popping: true } : b))
+    setScore(s => s + 1)
+    ballTimersRef.current.set(id, setTimeout(() => removeBall(id), POP_MS))
+  }, [removeBall])
+
+  // Aparecer un balón en posición random dentro del arena.
+  // Si ya hay MAX_BALLS activos, descarta silenciosamente (el spawner sigue corriendo).
+  const spawnBall = useCallback(() => {
+    const id    = ballIdRef.current++
+    const x     = 8 + Math.random() * 84
+    const y     = 8 + Math.random() * 84
+    const delay = `${(Math.random() * 1.4).toFixed(2)}s`
+    const speed = `${(1.5 + Math.random()).toFixed(2)}s`
+
+    // Programar despawn antes del setState para que el ID ya esté en el mapa.
+    const timer = setTimeout(() => fadeBall(id), BALL_LIFETIME_MS)
+    ballTimersRef.current.set(id, timer)
+
+    setBalls(prev => {
+      const active = prev.filter(b => !b.popping && !b.fading).length
+      if (active >= MAX_BALLS) {
+        // Sin lugar — cancelar el timer y no modificar estado.
+        clearTimeout(timer)
+        ballTimersRef.current.delete(id)
+        return prev
+      }
+      return [...prev, { id, x, y, popping: false, fading: false, delay, speed }]
+    })
+  }, [fadeBall])
+
+  // Spawner automático con delay random para sensación orgánica.
+  // Cleanup al desmontar para no dejar timers corriendo en background.
+  useEffect(() => {
+    const scheduleNext = () => {
+      const delay = SPAWN_MIN_MS + Math.random() * (SPAWN_MAX_MS - SPAWN_MIN_MS)
+      spawnTimerRef.current = setTimeout(() => {
+        spawnBall()
+        scheduleNext()
+      }, delay)
+    }
+    scheduleNext()
+
+    return () => {
+      clearTimeout(spawnTimerRef.current)
+      ballTimersRef.current.forEach(t => clearTimeout(t))
+      ballTimersRef.current.clear()
+      handledRef.current.clear()
+    }
+  }, [spawnBall])
 
   const phase = PHASES[phaseIdx]
 
@@ -141,7 +192,7 @@ export default function ArcadeView() {
         </div>
       </div>
 
-      {/* ── Descargador de Tensión (Clicker) ─────────────────────── */}
+      {/* ── Descargador de Tensión ────────────────────────────────── */}
       <div className="sticker-card overflow-hidden">
 
         {/* Barra de título + contador */}
@@ -156,21 +207,19 @@ export default function ArcadeView() {
           </div>
         </div>
 
-        {/* Arena de juego */}
+        {/* Arena de juego — sin onClick, los balones aparecen solos */}
         <div
           ref={arenaRef}
-          onClick={addBall}
           className="relative h-56 w-full overflow-hidden bg-brand-purple"
           style={{
             backgroundImage: 'radial-gradient(rgba(255,255,255,0.07) 1.5px, transparent 1.5px)',
             backgroundSize: '18px 18px',
-            cursor: 'crosshair',
           }}
         >
           {balls.length === 0 && (
             <p className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 font-display text-sm tracking-wide text-white/35">
               <span className="text-2xl">⚽</span>
-              TAP aquí para crear balones
+              Aparecen solos... ¡explotá los que puedas!
             </p>
           )}
 
@@ -179,13 +228,12 @@ export default function ArcadeView() {
               key={ball.id}
               ball={ball}
               onPop={popBall}
-              onRemoved={removeBall}
             />
           ))}
         </div>
 
         <p className="border-t-[2px] border-ink/10 px-4 py-2 text-center text-[11px] font-semibold text-ink/35">
-          Máx. {MAX_BALLS} balones activos · Tocá cada uno para explotar
+          Máx. {MAX_BALLS} activos · ¡Tocá antes de que escapen!
         </p>
       </div>
     </section>
@@ -195,7 +243,10 @@ export default function ArcadeView() {
 // ── Ball ─────────────────────────────────────────────────────────────
 // Wrapper div maneja la posición absoluta; el botón interior maneja la
 // animación de forma independiente para que los transforms no colisionen.
-function Ball({ ball, onPop, onRemoved }) {
+// La remoción del estado la maneja un timer en el padre (no onAnimationEnd),
+// para ser robusta cuando la pestaña está en background y el navegador
+// congela las animaciones CSS.
+function Ball({ ball, onPop }) {
   return (
     <div
       data-ball="true"
@@ -205,12 +256,13 @@ function Ball({ ball, onPop, onRemoved }) {
       <button
         type="button"
         aria-label="Explotar balón"
-        onClick={() => !ball.popping && onPop(ball.id)}
-        onAnimationEnd={() => ball.popping && onRemoved(ball.id)}
+        onClick={() => !ball.popping && !ball.fading && onPop(ball.id)}
         className={`block text-3xl leading-none select-none touch-none
-                    ${ball.popping ? 'animate-ball-pop' : 'animate-ball-float'}`}
+                    ${ball.popping ? 'animate-ball-pop'
+                    : ball.fading  ? 'animate-ball-fade'
+                    : 'animate-ball-float'}`}
         style={
-          ball.popping
+          ball.popping || ball.fading
             ? undefined
             : { animationDelay: ball.delay, animationDuration: ball.speed }
         }
