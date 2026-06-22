@@ -108,7 +108,12 @@ export async function abrirSobre(usuarioId) {
   if (!consumePack()) throw new Error('No hay sobres disponibles')
 
   const catalogo = await getCatalogo()
-  const picks    = Array.from({ length: 5 }, () => weightedPick(catalogo))
+
+  // dato_inutil solo aparece si el usuario ya envió al menos una quiniela
+  const hasQuiniela = localStorage.getItem('mp_quiniela') !== null
+  const pool = hasQuiniela ? catalogo : catalogo.filter(f => f.ilustracion !== 'dato_inutil')
+
+  const picks    = Array.from({ length: 5 }, () => weightedPick(pool))
   const ids      = picks.map(p => p.id)
 
   const { error } = await supabase.rpc('upsert_coleccion', {

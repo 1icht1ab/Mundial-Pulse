@@ -141,12 +141,77 @@ function RojaDirecta() {
   )
 }
 
+function DatoInutil() {
+  return (
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      {/* Background cycles purple→lime→coral for holographic wow effect */}
+      <rect width="100" height="100">
+        <animate attributeName="fill" values="#4338CA;#5B21B6;#BEF264;#CCFF00;#FF6B6B;#FF4B4B;#4338CA" dur="3s" repeatCount="indefinite"/>
+      </rect>
+
+      {/* Brain body */}
+      <path
+        d="M22,80 C10,80 8,65 14,57 C10,50 13,40 20,34 C22,26 30,19 40,20 C44,25 56,25 60,20 C70,19 78,26 80,34 C87,40 90,50 86,57 C92,65 90,80 78,80 Z"
+        fill="#FFD6D6" stroke="#1A1A1A" strokeWidth="3"
+      />
+      {/* Central fissure */}
+      <path d="M50,21 C48,40 52,60 50,80" fill="none" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"/>
+      {/* Squiggly texture — left hemisphere */}
+      <path d="M24,47 C28,41 34,47 38,43" fill="none" stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M26,58 C30,54 34,58 38,55" fill="none" stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round"/>
+      {/* Squiggly texture — right hemisphere */}
+      <path d="M62,47 C66,41 72,47 76,43" fill="none" stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M62,58 C66,54 70,58 74,55" fill="none" stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round"/>
+
+      {/* Surprised wide eyes */}
+      <circle cx="36" cy="64" r="9" fill="white" stroke="#1A1A1A" strokeWidth="2.5"/>
+      <circle cx="64" cy="64" r="9" fill="white" stroke="#1A1A1A" strokeWidth="2.5"/>
+      {/* Pupils looking UP (shocked) */}
+      <circle cx="35" cy="60" r="4.5" fill="#1A1A1A"/>
+      <circle cx="63" cy="60" r="4.5" fill="#1A1A1A"/>
+      <circle cx="37" cy="57.5" r="2" fill="white"/>
+      <circle cx="65" cy="57.5" r="2" fill="white"/>
+
+      {/* Raised surprised eyebrows */}
+      <path d="M26,51 C30,47 42,49 45,51" fill="none" stroke="#1A1A1A" strokeWidth="2.5" strokeLinecap="round"/>
+      <path d="M55,51 C58,49 70,47 74,51" fill="none" stroke="#1A1A1A" strokeWidth="2.5" strokeLinecap="round"/>
+
+      {/* Surprised O-mouth */}
+      <ellipse cx="50" cy="74" rx="5.5" ry="3.5" fill="#1A1A1A"/>
+      <ellipse cx="50" cy="73" rx="3.5" ry="2" fill="#FF6B6B"/>
+
+      {/* Explosion burst from brain top */}
+      <line x1="50" y1="18" x2="50" y2="4"  stroke="#1A1A1A" strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="50" y1="18" x2="42" y2="5"  stroke="#1A1A1A" strokeWidth="2"   strokeLinecap="round"/>
+      <line x1="50" y1="18" x2="58" y2="5"  stroke="#1A1A1A" strokeWidth="2"   strokeLinecap="round"/>
+      <line x1="50" y1="18" x2="35" y2="7"  stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="50" y1="18" x2="65" y2="7"  stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round"/>
+      <line x1="50" y1="18" x2="26" y2="11" stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+      <line x1="50" y1="18" x2="74" y2="11" stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+
+      {/* Stars at explosion tips */}
+      <circle cx="50" cy="3"  r="3"   fill="#BEF264" stroke="#1A1A1A" strokeWidth="1.5"/>
+      <circle cx="34" cy="6"  r="2.5" fill="#FF6B6B" stroke="#1A1A1A" strokeWidth="1.5"/>
+      <circle cx="66" cy="6"  r="2.5" fill="#4338CA" stroke="#1A1A1A" strokeWidth="1.5"/>
+      <polygon points="26,8 27.5,12 31,10.5 28.5,14 26,17 23.5,14 20,10.5 23.5,12" fill="#BEF264" stroke="#1A1A1A" strokeWidth="1"/>
+      <polygon points="74,8 75.5,12 79,10.5 76.5,14 74,17 71.5,14 68,10.5 71.5,12" fill="#BEF264" stroke="#1A1A1A" strokeWidth="1"/>
+
+      {/* Floating ! and ? */}
+      <text x="7"  y="70" fontFamily="sans-serif" fontWeight="900" fontSize="14" fill="white" stroke="#1A1A1A" strokeWidth="0.8">!</text>
+      <text x="82" y="68" fontFamily="sans-serif" fontWeight="900" fontSize="14" fill="white" stroke="#1A1A1A" strokeWidth="0.8">?</text>
+      <text x="13" y="29" fontFamily="sans-serif" fontWeight="900" fontSize="10" fill="white" stroke="#1A1A1A" strokeWidth="0.7" opacity="0.8">?</text>
+      <text x="80" y="31" fontFamily="sans-serif" fontWeight="900" fontSize="10" fill="white" stroke="#1A1A1A" strokeWidth="0.7" opacity="0.8">!</text>
+    </svg>
+  )
+}
+
 const ILLUSTRATIONS = {
   gol_agonico:  GolAgonico,
   el_muro:      ElMuro,
   el_varazo:    ElVarazo,
   la_remontada: LaRemontada,
   roja_directa: RojaDirecta,
+  dato_inutil:  DatoInutil,
 }
 
 export default function FiguritaIlustracion({ id }) {

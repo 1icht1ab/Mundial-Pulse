@@ -22,6 +22,7 @@ export default function StickersView({ onNavigate }) {
   const [cardIdx,   setCardIdx]   = useState(0)
   const [cardShown, setCardShown] = useState(false)
   const [openError, setOpenError] = useState(null)
+  const [copiedId,  setCopiedId]  = useState(null)
 
   const userId = getOrCreateUserId()
 
@@ -68,6 +69,55 @@ export default function StickersView({ onNavigate }) {
       const col = await getColeccion(userId)
       setColeccion(col)
     }
+  }
+
+  // ── Share / Download ──────────────────────────────────────────────
+  function handleShare(f) {
+    const text = `¡Conseguí "${f.nombre}" en Mundial Pulse! ⚽ mundialPulse-react-sooty.vercel.app`
+    if (navigator.share) {
+      navigator.share({ title: 'Mundial Pulse', text }).catch(err => {
+        if (err.name !== 'AbortError') fallbackCopy(f.id, text)
+      })
+    } else {
+      fallbackCopy(f.id, text)
+    }
+  }
+
+  function fallbackCopy(id, text) {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopiedId(id)
+      setTimeout(() => setCopiedId(cur => (cur === id ? null : cur)), 2000)
+    }).catch(() => {})
+  }
+
+  function handleDownload(f, cardEl) {
+    const svgEl = cardEl?.querySelector('svg')
+    if (!svgEl) return
+    const SIZE  = 480
+    const clone = svgEl.cloneNode(true)
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    clone.setAttribute('width', String(SIZE))
+    clone.setAttribute('height', String(SIZE))
+    const svgStr = new XMLSerializer().serializeToString(clone)
+    const url    = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr)
+    const img    = new Image()
+    img.onload   = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width  = SIZE
+      canvas.height = SIZE
+      canvas.getContext('2d').drawImage(img, 0, 0, SIZE, SIZE)
+      canvas.toBlob(blob => {
+        const pngUrl = URL.createObjectURL(blob)
+        const a      = document.createElement('a')
+        a.href       = pngUrl
+        a.download   = `mundial-pulse-${f.nombre.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(pngUrl)
+      }, 'image/png')
+    }
+    img.src = url
   }
 
   // ── Modo apertura de sobre ─────────────────────────────────────────
@@ -201,6 +251,7 @@ export default function StickersView({ onNavigate }) {
             return (
               <div
                 key={f.id}
+                data-figurita
                 className={`sticker-card p-3 flex flex-col gap-2 ${owned ? 'bg-white' : 'bg-ink/5'}`}
               >
                 <div className={`rounded-sticker overflow-hidden aspect-square border-[2px] border-ink/10 ${
@@ -224,6 +275,26 @@ export default function StickersView({ onNavigate }) {
                   }`}>
                     {owned ? RAREZA_LABEL[f.rareza] : '?'}
                   </span>
+
+                  {/* Share / Download — solo para cartas desbloqueadas */}
+                  {owned && (
+                    <div className="flex gap-1 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => handleShare(f)}
+                        className="flex-1 rounded-full border-[2px] border-ink bg-brand-purple py-0.5 font-sans text-[9px] font-bold leading-none text-white shadow-[2px_2px_0_#1A1A1A] transition-all active:translate-y-px active:shadow-none"
+                      >
+                        {copiedId === f.id ? '¡Copiado!' : '🔗 Compartir'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDownload(f, e.currentTarget.closest('[data-figurita]'))}
+                        className="flex-1 rounded-full border-[2px] border-ink bg-brand-lime py-0.5 font-sans text-[9px] font-bold leading-none text-ink shadow-[2px_2px_0_#1A1A1A] transition-all active:translate-y-px active:shadow-none"
+                      >
+                        ⬇ Guardar
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )
