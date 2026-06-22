@@ -16,14 +16,18 @@ const SPAWN_MIN_MS     = 400
 const SPAWN_MAX_MS     = 900
 
 export default function ArcadeView() {
-  const [phaseIdx, setPhaseIdx]   = useState(0)
-  const [balls, setBalls]         = useState([])
-  const [score, setScore]         = useState(0)
-  const arenaRef                  = useRef(null)
-  const ballIdRef                 = useRef(0)
-  const spawnTimerRef             = useRef(null)
-  const ballTimersRef             = useRef(new Map())   // id → timeout pendiente (despawn o remoción)
-  const handledRef                = useRef(new Set())   // ids ya reclamados (pop/fade) — guard SÍNCRONO
+  const [phaseIdx,    setPhaseIdx]    = useState(0)
+  const [balls,       setBalls]       = useState([])
+  const [score,       setScore]       = useState(0)
+  const [fallos,      setFallos]      = useState(0)   // 0-2 taps en vacío acumulados
+  const [tarjetaRoja, setTarjetaRoja] = useState(false)
+  const arenaRef         = useRef(null)
+  const ballIdRef        = useRef(0)
+  const spawnTimerRef    = useRef(null)
+  const ballTimersRef    = useRef(new Map())   // id → timeout pendiente (despawn o remoción)
+  const handledRef       = useRef(new Set())   // ids ya reclamados (pop/fade) — guard SÍNCRONO
+  const fallosRef        = useRef(0)           // espejo síncrono de `fallos` para callbacks
+  const redCardTimerRef  = useRef(null)        // timer del flash de tarjeta roja
 
   // Ciclo de fases cada 4s (sincronizado con la animación CSS de 12s).
   useEffect(() => {
@@ -76,6 +80,42 @@ export default function ArcadeView() {
     ballTimersRef.current.set(id, setTimeout(() => removeBall(id), POP_MS))
   }, [removeBall])
 
+  // Tarjeta roja: flash visual → limpieza inmediata de arena → reset de score y fallos.
+  const triggerRedCard = useCallback(() => {
+    fallosRef.current = 0
+    setFallos(0)
+    setTarjetaRoja(true)
+    // Limpiar todos los balones y sus timers de golpe.
+    ballTimersRef.current.forEach(t => clearTimeout(t))
+    ballTimersRef.current.clear()
+    handledRef.current.clear()
+    setBalls([])
+    // Después del flash, resetear score y apagar el indicador rojo.
+    if (redCardTimerRef.current) clearTimeout(redCardTimerRef.current)
+    redCardTimerRef.current = setTimeout(() => {
+      setScore(0)
+      setTarjetaRoja(false)
+      redCardTimerRef.current = null
+    }, 800)
+  }, [])
+
+  // Tap en el vacío: acumula fallos. Al tercero dispara la tarjeta roja.
+  // Usa fallosRef para leer el valor actual de forma síncrona.
+  const handleMiss = useCallback(() => {
+    fallosRef.current += 1
+    if (fallosRef.current >= 3) {
+      triggerRedCard()
+    } else {
+      setFallos(fallosRef.current)
+    }
+  }, [triggerRedCard])
+
+  // Click en el arena: si cayó sobre un balón lo maneja Ball; si fue en el vacío → fallo.
+  const handleArenaTap = useCallback((e) => {
+    if (e.target.closest('[data-ball]')) return
+    handleMiss()
+  }, [handleMiss])
+
   // Aparecer un balón en posición random dentro del arena.
   // Si ya hay MAX_BALLS activos, descarta silenciosamente (el spawner sigue corriendo).
   const spawnBall = useCallback(() => {
@@ -115,6 +155,7 @@ export default function ArcadeView() {
 
     return () => {
       clearTimeout(spawnTimerRef.current)
+      clearTimeout(redCardTimerRef.current)
       ballTimersRef.current.forEach(t => clearTimeout(t))
       ballTimersRef.current.clear()
       handledRef.current.clear()
@@ -195,11 +236,21 @@ export default function ArcadeView() {
       {/* ── Descargador de Tensión ────────────────────────────────── */}
       <div className="sticker-card overflow-hidden">
 
-        {/* Barra de título + contador */}
+        {/* Barra de título + indicador de tarjetas + contador */}
         <div className="flex items-center justify-between border-b-[3px] border-ink bg-main-cream px-4 py-2.5">
-          <h3 className="font-display text-base tracking-wide text-brand-purple">
-            ¡DESAHÓGATE!
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-display text-base tracking-wide text-brand-purple">
+              ¡DESAHÓGATE!
+            </h3>
+            {/* Indicador de tarjetas: ⬜⬜ → 🟨⬜ → 🟨🟨 → 🟥🟥 */}
+            <span className="text-sm leading-none select-none" aria-label={`Fallos: ${fallos}`}>
+              {tarjetaRoja
+                ? '🟥🟥'
+                : fallos === 0 ? '⬜⬜'
+                : fallos === 1 ? '🟨⬜'
+                : '🟨🟨'}
+            </span>
+          </div>
           <div className="flex items-center gap-1.5 rounded-full border-[3px] border-ink bg-brand-lime px-3 py-1 shadow-sticker-sm">
             <span className="text-base leading-none">😤</span>
             <span className="font-display text-lg text-ink leading-none">{score}</span>
@@ -207,10 +258,12 @@ export default function ArcadeView() {
           </div>
         </div>
 
-        {/* Arena de juego — sin onClick, los balones aparecen solos */}
+        {/* Arena de juego — click en vacío acumula fallos/tarjeta */}
         <div
           ref={arenaRef}
-          className="relative h-56 w-full overflow-hidden bg-brand-purple"
+          onClick={handleArenaTap}
+          className={`relative h-56 w-full overflow-hidden transition-colors duration-200
+                      ${tarjetaRoja ? 'bg-brand-coral' : 'bg-brand-purple'}`}
           style={{
             backgroundImage: 'radial-gradient(rgba(255,255,255,0.07) 1.5px, transparent 1.5px)',
             backgroundSize: '18px 18px',
