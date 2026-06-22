@@ -13,7 +13,7 @@
 export const TABS = [
   { id: 'hoy', emoji: '⚡', label: 'Hoy' },
   { id: 'arcade', emoji: '🕹️', label: 'Arcade' },
-  { id: 'tienda', emoji: '🛍️', label: 'Tienda' },
+  // { id: 'tienda', emoji: '🛍️', label: 'Tienda' },  // re-enable when e-commerce is ready
   { id: 'comunidad', emoji: '💬', label: 'Comunidad' },
 ]
 

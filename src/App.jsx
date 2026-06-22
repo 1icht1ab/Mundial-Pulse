@@ -15,7 +15,7 @@ import FixtureView from './views/FixtureView.jsx'
 const VIEWS = {
   hoy: HoyView,
   arcade: ArcadeView,
-  tienda: TiendaView,
+  // tienda: TiendaView,  // re-enable when e-commerce is ready
   comunidad: ComunidadView,
   predice: PredictView,
   stickers: StickersView,
@@ -29,7 +29,8 @@ export default function App() {
   // const [lang, setLang] = useState('ES')  // re-enable when i18n is wired
   const [activeTab, setActiveTab] = useState('hoy')
 
-  const ActiveView = VIEWS[activeTab]
+  // Fallback a hoy si el tab no tiene vista registrada (ej: tienda oculta)
+  const ActiveView = VIEWS[activeTab] ?? HoyView
 
   return (
     <MobileViewport>
