@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getLiveMatches } from '../services/matches.js'
+import { getReacciones, addReaccion, getUsedEmojis, REACTION_EMOJIS } from '../services/reacciones.js'
 import { flagCode } from '../utils/flags.js'
 
 /**
@@ -16,7 +17,9 @@ import { flagCode } from '../utils/flags.js'
  *   data                   → tarjeta de partido normal
  */
 
-const POLL_INTERVAL_MS = 45_000   // 45 s — balance entre frescura y cuota de API
+const POLL_INTERVAL_MS      = 45_000  // 45 s — marcador
+const REACTIONS_POLL_MS     = 30_000  // 30 s — reacciones
+const ZERO_REACTIONS        = REACTION_EMOJIS.map(emoji => ({ emoji, total: 0 }))
 
 function pickMatch(matches) {
   if (!matches?.length) return null
@@ -26,10 +29,12 @@ function pickMatch(matches) {
 }
 
 export default function LiveScoreboard() {
-  const [matches, setMatches]   = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [error,   setError]     = useState(null)
-  const [lastOk,  setLastOk]    = useState(null)  // último fetch exitoso
+  const [matches,   setMatches]   = useState([])
+  const [loading,   setLoading]   = useState(true)
+  const [error,     setError]     = useState(null)
+  const [lastOk,    setLastOk]    = useState(null)
+  const [reactions, setReactions] = useState(ZERO_REACTIONS)
+  const [usedEmojis,setUsedEmojis]= useState([])
 
   const fetchMatches = useCallback(async () => {
     const { data, error: fetchErr } = await getLiveMatches()
@@ -44,14 +49,50 @@ export default function LiveScoreboard() {
     setLoading(false)
   }, [])
 
-  // Fetch inicial + polling
+  const fetchReactions = useCallback(async (fixtureId) => {
+    const { data } = await getReacciones(fixtureId)
+    setReactions(data)
+  }, [])
+
+  // Fetch inicial + polling del marcador
   useEffect(() => {
     fetchMatches()
     const t = setInterval(fetchMatches, POLL_INTERVAL_MS)
     return () => clearInterval(t)
   }, [fetchMatches])
 
-  const match = pickMatch(matches)
+  const match   = pickMatch(matches)
+  const isLive  = match?.status === 'live'
+
+  // Cargar emojis ya usados del localStorage cuando cambia el partido
+  useEffect(() => {
+    if (!match?.n) return
+    setUsedEmojis(getUsedEmojis(match.n))
+    setReactions(ZERO_REACTIONS)          // resetear al cambiar partido
+    fetchReactions(match.n)
+  }, [match?.n, fetchReactions])
+
+  // Polling de reacciones cada 30s (solo mientras hay partido EN VIVO)
+  useEffect(() => {
+    if (!isLive || !match?.n) return
+    const t = setInterval(() => fetchReactions(match.n), REACTIONS_POLL_MS)
+    return () => clearInterval(t)
+  }, [isLive, match?.n, fetchReactions])
+
+  // Tap de reacción: optimistic update → insert → rollback si falla
+  const handleReact = useCallback(async (emoji) => {
+    if (!match?.n || usedEmojis.includes(emoji)) return
+    // Optimistic
+    setReactions(prev => prev.map(r => r.emoji === emoji ? { ...r, total: r.total + 1 } : r))
+    setUsedEmojis(prev => [...prev, emoji])
+    // Persist
+    const { error: insertErr } = await addReaccion(match.n, emoji)
+    if (insertErr && insertErr.message !== 'rate-limited') {
+      // Rollback solo si es error real (rate-limited ya está manejado en el servicio)
+      setReactions(prev => prev.map(r => r.emoji === emoji ? { ...r, total: Math.max(0, r.total - 1) } : r))
+      setUsedEmojis(prev => prev.filter(e => e !== emoji))
+    }
+  }, [match?.n, usedEmojis])
 
   // ── Estado: cargando (primer fetch) ──────────────────────────────
   if (loading) return <SkeletonCard />
@@ -59,7 +100,6 @@ export default function LiveScoreboard() {
   // ── Estado: sin partido seleccionable ────────────────────────────
   if (!match) return <EmptyCard onRetry={fetchMatches} />
 
-  const isLive     = match.status === 'live'
   const isUpcoming = match.status === 'upcoming'
   const scoreH     = match.result?.h ?? '-'
   const scoreA     = match.result?.a ?? '-'
@@ -102,6 +142,15 @@ export default function LiveScoreboard() {
         </div>
         <Team name={match.away} />
       </div>
+
+      {/* Reacciones — solo en partido EN VIVO */}
+      {isLive && match?.n && (
+        <ReactionRow
+          reactions={reactions}
+          usedEmojis={usedEmojis}
+          onReact={handleReact}
+        />
+      )}
 
       {/* CTA */}
       <button
@@ -158,6 +207,35 @@ function SkeletonCard() {
         </div>
       </div>
       <div className="h-10 border-t-[3px] border-ink bg-brand-lime/60" />
+    </div>
+  )
+}
+
+function ReactionRow({ reactions, usedEmojis, onReact }) {
+  return (
+    <div className="border-t-[2px] border-white/20 px-3 py-2 flex flex-wrap justify-center gap-1">
+      {reactions.map(({ emoji, total }) => {
+        const used = usedEmojis.includes(emoji)
+        return (
+          <button
+            key={emoji}
+            type="button"
+            disabled={used}
+            onClick={() => onReact(emoji)}
+            className={`flex items-center gap-0.5 rounded-full border-[2px] border-ink
+                        px-1.5 py-0.5 font-bold shadow-[2px_2px_0_#1A1A1A]
+                        transition-all active:translate-y-[1px] active:shadow-none
+                        ${used
+                          ? 'bg-brand-lime text-ink cursor-default'
+                          : 'bg-white/90 text-ink hover:bg-white'}`}
+          >
+            <span className="text-sm leading-none">{emoji}</span>
+            {total > 0 && (
+              <span className="text-[10px] leading-none">{total}</span>
+            )}
+          </button>
+        )
+      })}
     </div>
   )
 }
