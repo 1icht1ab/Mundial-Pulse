@@ -1,55 +1,64 @@
-import { useState, useEffect, useCallback } from 'react'
-import { DUELO_ID, OPCIONES, getDuelo, votarCrack, getVotoGuardado } from '../services/cracks.js'
+import { useState, useEffect } from 'react'
+import { getDueloDelDia, getDuelo, votarCrack, getVotoGuardado } from '../services/cracks.js'
 
-const POLL_MS    = 30_000
-const ZERO_VOTES = Object.fromEntries(Object.keys(OPCIONES).map(k => [k, 0]))
+const POLL_MS = 30_000
 
 export default function CracksModal({ onClose }) {
-  const [votes,   setVotes]   = useState(ZERO_VOTES)
-  const [voted,   setVoted]   = useState(() => getVotoGuardado(DUELO_ID))
+  const [dueloId, setDueloId] = useState(null)
+  const [duelo,   setDuelo]   = useState(null)   // { pregunta, opciones[] }
+  const [votes,   setVotes]   = useState({})
+  const [voted,   setVoted]   = useState(null)
   const [voting,  setVoting]  = useState(false)
   const [loading, setLoading] = useState(true)
 
-  const fetchVotes = useCallback(async () => {
-    const { data } = await getDuelo(DUELO_ID)
-    if (data) setVotes(data)
-    setLoading(false)
+  // Init: resolve today's match → duelo temático → vote counts
+  useEffect(() => {
+    async function init() {
+      const { dueloId: id, duelo: d } = await getDueloDelDia()
+      setDueloId(id)
+      setDuelo(d)
+      setVoted(getVotoGuardado(id))
+      const { data } = await getDuelo(id)
+      if (data) setVotes(data)
+      setLoading(false)
+    }
+    init()
   }, [])
 
+  // 30s polling — starts once dueloId is resolved
   useEffect(() => {
-    fetchVotes()
-    const t = setInterval(fetchVotes, POLL_MS)
+    if (!dueloId) return
+    const t = setInterval(async () => {
+      const { data } = await getDuelo(dueloId)
+      if (data) setVotes(data)
+    }, POLL_MS)
     return () => clearInterval(t)
-  }, [fetchVotes])
+  }, [dueloId])
 
-  async function handleVote(opcion) {
-    if (voted || voting) return
+  async function handleVote(opcionId) {
+    if (voted || voting || !dueloId) return
     setVoting(true)
-    // Optimistic update
-    setVotes(prev => ({ ...prev, [opcion]: prev[opcion] + 1 }))
-    setVoted(opcion)
-    const { error } = await votarCrack(DUELO_ID, opcion)
+    // Optimistic
+    setVotes(prev => ({ ...prev, [opcionId]: (prev[opcionId] ?? 0) + 1 }))
+    setVoted(opcionId)
+    const { error } = await votarCrack(dueloId, opcionId)
     if (error && error.message !== 'ya-votado') {
       // Rollback
-      setVotes(prev => ({ ...prev, [opcion]: Math.max(0, prev[opcion] - 1) }))
+      setVotes(prev => ({ ...prev, [opcionId]: Math.max(0, (prev[opcionId] ?? 1) - 1) }))
       setVoted(null)
     } else {
-      fetchVotes() // sync with real count after persist
+      const { data } = await getDuelo(dueloId)
+      if (data) setVotes(data)
     }
     setVoting(false)
   }
 
-  const total  = votes.delantero + votes.arquero
-  const pctDel = total === 0 ? 50 : Math.round((votes.delantero / total) * 100)
-  const pctArq = 100 - pctDel
+  if (loading || !duelo) return <CracksSkeleton onClose={onClose} />
 
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-ink/60"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 z-40 bg-ink/60" onClick={onClose} />
 
       {/* Modal card */}
       <div
@@ -64,9 +73,7 @@ export default function CracksModal({ onClose }) {
             <h2 className="font-display text-xl tracking-wide text-ink">
               ¡EL CRACK DEL DÍA! 👑
             </h2>
-            <p className="mt-0.5 font-sans text-xs text-ink/70">
-              ¿Cuál es el rol más determinante del partido?
-            </p>
+            <p className="mt-0.5 font-sans text-xs text-ink/70">{duelo.pregunta}</p>
           </div>
           <button
             type="button"
@@ -83,10 +90,10 @@ export default function CracksModal({ onClose }) {
         <div className="space-y-4 px-4 py-4">
           {/* Jersey duel */}
           <div className="grid grid-cols-2 gap-3">
-            {Object.entries(OPCIONES).map(([key, opcion]) => (
+            {duelo.opciones.map(opcion => (
               <JerseyCard
-                key={key}
-                id={key}
+                key={opcion.id}
+                id={opcion.id}
                 opcion={opcion}
                 voted={voted}
                 voting={voting}
@@ -96,32 +103,88 @@ export default function CracksModal({ onClose }) {
           </div>
 
           {/* Vote bar */}
-          {loading ? (
-            <div className="h-6 animate-pulse rounded-full border-[3px] border-ink bg-ink/10" />
-          ) : (
-            <div className="space-y-1.5">
-              <div className="flex h-6 w-full overflow-hidden rounded-full border-[3px] border-ink">
-                <div
-                  className="bg-brand-lime transition-all duration-700 ease-out"
-                  style={{ width: `${pctDel}%` }}
-                />
-                <div className="flex-1 bg-brand-coral" />
-              </div>
-              <div className="flex justify-between font-sans text-[11px] font-bold text-ink/70">
-                <span>👟 {pctDel}% <span className="font-normal opacity-70">({votes.delantero})</span></span>
-                <span><span className="font-normal opacity-70">({votes.arquero})</span> {pctArq}% 🧤</span>
-              </div>
-            </div>
-          )}
+          <VoteBar opciones={duelo.opciones} votes={votes} />
 
           {voted && (
             <p className="text-center font-sans text-[11px] text-ink/50">
-              Votaste por <strong>{OPCIONES[voted]?.label}</strong> · se actualiza cada 30s
+              Votaste por{' '}
+              <strong>{duelo.opciones.find(o => o.id === voted)?.nombre}</strong>
+              {' '}· se actualiza cada 30s
             </p>
           )}
         </div>
       </div>
     </>
+  )
+}
+
+// ── Skeleton (mientras getDueloDelDia() resuelve) ───────────────────────
+function CracksSkeleton({ onClose }) {
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-ink/60" onClick={onClose} />
+      <div
+        className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-sm -translate-y-1/2
+                   rounded-sticker border-[4px] border-ink bg-main-cream
+                   shadow-sticker-lg overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between border-b-[3px] border-ink bg-brand-lime px-4 pb-3 pt-4">
+          <div className="flex-1 space-y-2">
+            <div className="h-6 w-40 animate-pulse rounded-full bg-ink/20" />
+            <div className="h-3 w-28 animate-pulse rounded-full bg-ink/10" />
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="ml-3 mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full
+                       border-[3px] border-ink bg-white font-bold leading-none text-ink
+                       shadow-sticker-sm transition-all active:translate-y-px active:shadow-none"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="space-y-4 px-4 py-4">
+          <div className="grid grid-cols-2 gap-3">
+            {[0, 1].map(i => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <div className="aspect-square w-full animate-pulse rounded-sticker border-[3px] border-ink bg-ink/10" />
+                <div className="h-3 w-20 animate-pulse rounded-full bg-ink/10" />
+                <div className="h-9 w-full animate-pulse rounded-full border-[3px] border-ink bg-ink/10" />
+              </div>
+            ))}
+          </div>
+          <div className="h-6 animate-pulse rounded-full border-[3px] border-ink bg-ink/10" />
+        </div>
+      </div>
+    </>
+  )
+}
+
+// ── VoteBar — genérico para cualquier par de opciones ───────────────────
+function VoteBar({ opciones, votes }) {
+  const [a, b] = opciones
+  const ca    = votes[a.id] ?? 0
+  const cb    = votes[b.id] ?? 0
+  const total = ca + cb
+  const pctA  = total === 0 ? 50 : Math.round((ca / total) * 100)
+  const pctB  = 100 - pctA
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex h-6 w-full overflow-hidden rounded-full border-[3px] border-ink">
+        <div
+          className="transition-all duration-700 ease-out"
+          style={{ width: `${pctA}%`, backgroundColor: a.color }}
+        />
+        <div className="flex-1" style={{ backgroundColor: b.color }} />
+      </div>
+      <div className="flex justify-between font-sans text-[11px] font-bold text-ink/70">
+        <span>{pctA}% <span className="font-normal opacity-70">({ca})</span></span>
+        <span><span className="font-normal opacity-70">({cb})</span> {pctB}%</span>
+      </div>
+    </div>
   )
 }
 
@@ -133,19 +196,23 @@ function JerseyCard({ id, opcion, voted, voting, onVote }) {
   return (
     <div className="flex flex-col items-center gap-2">
       {/* Jersey */}
-      <div className={`w-full aspect-square rounded-sticker border-[3px] border-ink overflow-hidden
-                       shadow-sticker-sm transition-all duration-200
-                       ${isVoted ? 'scale-[1.04] shadow-sticker' : hasVoted ? 'opacity-55' : ''}`}>
-        <JerseySvg fill={opcion.fill} numero={opcion.numero} />
+      <div
+        className={`w-full aspect-square rounded-sticker border-[3px] border-ink overflow-hidden
+                    shadow-sticker-sm transition-all duration-200
+                    ${isVoted ? 'scale-[1.04] shadow-sticker' : hasVoted ? 'opacity-55' : ''}`}
+      >
+        <JerseySvg fill={opcion.color} numero={opcion.numero} />
       </div>
 
-      {/* Archetype label */}
-      <p className={`text-center font-display text-[11px] leading-tight tracking-wide
-                     ${isVoted ? 'text-brand-purple' : 'text-ink/70'}`}>
-        {opcion.label}
+      {/* Nombre del arquetipo */}
+      <p
+        className={`text-center font-display text-[11px] leading-tight tracking-wide
+                    ${isVoted ? 'text-brand-purple' : 'text-ink/70'}`}
+      >
+        {opcion.nombre}
       </p>
 
-      {/* Vote button */}
+      {/* Botón de voto */}
       <button
         type="button"
         disabled={hasVoted || voting}
@@ -157,7 +224,7 @@ function JerseyCard({ id, opcion, voted, voting, onVote }) {
                     ${isVoted
                       ? 'bg-brand-lime text-ink shadow-none translate-y-px'
                       : hasVoted
-                      ? 'bg-ink/8 text-ink/30 shadow-none'
+                      ? 'bg-ink/10 text-ink/30 shadow-none'
                       : 'bg-white text-ink hover:bg-brand-lime'}`}
       >
         {isVoted ? '✓ Votado' : 'VOTAR'}
@@ -167,15 +234,11 @@ function JerseyCard({ id, opcion, voted, voting, onVote }) {
 }
 
 // ── JerseySvg ───────────────────────────────────────────────────────────
-// Vista posterior de una camiseta de fútbol. Sin marcas, solo forma geométrica.
-// fill: color principal de la camiseta. numero: número dorsal.
+// Vista posterior de una camiseta. fill: color principal. numero: dorsal.
 function JerseySvg({ fill, numero }) {
   return (
     <svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-      {/* Fondo crema */}
       <rect width="80" height="90" fill="#F5F0E8"/>
-
-      {/* Cuerpo + mangas — vista posterior */}
       <path
         d="M 20,20
            C 24,13 32,9 40,9
@@ -189,8 +252,6 @@ function JerseySvg({ fill, numero }) {
         strokeWidth="3"
         strokeLinejoin="round"
       />
-
-      {/* Línea de cuello posterior (costura) */}
       <path
         d="M 24,14 C 32,22 48,22 56,14"
         fill="none"
@@ -198,17 +259,9 @@ function JerseySvg({ fill, numero }) {
         strokeWidth="2"
         strokeLinecap="round"
       />
-
-      {/* Costura de hombro */}
       <line x1="20" y1="29" x2="60" y2="29" stroke="white" strokeWidth="1.5" opacity="0.55"/>
-
-      {/* Costura central vertical */}
       <line x1="40" y1="20" x2="40" y2="86" stroke="white" strokeWidth="1.2" opacity="0.4"/>
-
-      {/* Dobladillo inferior */}
       <line x1="20" y1="80" x2="60" y2="80" stroke="white" strokeWidth="1.5" opacity="0.4"/>
-
-      {/* Número dorsal */}
       <text
         x="40"
         y="66"
