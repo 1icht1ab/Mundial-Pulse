@@ -5,31 +5,37 @@
 
 const ISO_MAP = {
   // ── Español (nombres en DB) ──────────────────────────────────────────
-  'Argelia':        'dz',
-  'Arabia Saudita': 'sa',
-  'Argentina':      'ar',
-  'Austria':        'at',
-  'Bélgica':        'be',
-  'Cabo Verde':     'cv',
-  'Colombia':       'co',
-  'Croacia':        'hr',
-  'Curaçao':        'cw',
-  'Ecuador':        'ec',
-  'España':         'es',
-  'Francia':        'fr',
-  'Ghana':          'gh',
-  'Inglaterra':     'gb-eng',  // Cruz de San Jorge, no Union Jack
-  'Irak':           'iq',
-  'Irán':           'ir',
-  'Jordania':       'jo',
-  'México':         'mx',
-  'Noruega':        'no',
-  'Panamá':         'pa',
-  'Portugal':       'pt',
-  'RD Congo':       'cd',
-  'Senegal':        'sn',
-  'Uruguay':        'uy',
-  'Uzbekistán':     'uz',
+  'Argelia':                'dz',
+  'Arabia Saudita':         'sa',
+  'Argentina':              'ar',
+  'Austria':                'at',
+  'Bélgica':                'be',
+  'Bosnia y Herzegovina':   'ba',
+  'Cabo Verde':             'cv',
+  'Canadá':                 'ca',
+  'Catar':                  'qa',
+  'Colombia':               'co',
+  'Croacia':                'hr',
+  'Curaçao':                'cw',
+  'Ecuador':                'ec',
+  'Egipto':                 'eg',
+  'España':                 'es',
+  'Francia':                'fr',
+  'Ghana':                  'gh',
+  'Inglaterra':             'gb-eng',  // Cruz de San Jorge, no Union Jack
+  'Irak':                   'iq',
+  'Irán':                   'ir',
+  'Jordania':               'jo',
+  'México':                 'mx',
+  'Noruega':                'no',
+  'Nueva Zelanda':          'nz',
+  'Panamá':                 'pa',
+  'Portugal':               'pt',
+  'RD Congo':               'cd',
+  'Senegal':                'sn',
+  'Suiza':                  'ch',
+  'Uruguay':                'uy',
+  'Uzbekistán':             'uz',
   // ── Inglés (nombres de /api/live) ───────────────────────────────────
   'Algeria':        'dz',
   'Australia':      'au',
@@ -73,3 +79,20 @@ const ISO_MAP = {
 // Devuelve el código ISO del equipo (ej. 'es', 'sa', 'gb-eng').
 // Retorna null si el equipo no está mapeado — el caller debe manejar el fallback.
 export const flagCode = (name) => ISO_MAP[name] ?? null
+
+// Códigos no-estándar que no se pueden convertir con regional indicators
+const EMOJI_OVERRIDES = {
+  'gb-eng': '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+}
+
+// Convierte un nombre de equipo a su emoji de bandera.
+// Retorna cadena vacía si el equipo no está mapeado.
+export function flagEmoji(name) {
+  const code = flagCode(name)
+  if (!code) return ''
+  if (EMOJI_OVERRIDES[code]) return EMOJI_OVERRIDES[code]
+  if (code.length !== 2) return ''
+  return [...code.toUpperCase()]
+    .map(c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65))
+    .join('')
+}

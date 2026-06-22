@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getDueloDelDia, getDuelo, votarCrack, getVotoGuardado } from '../services/cracks.js'
+import { flagEmoji } from '../utils/flags.js'
 
 const POLL_MS = 30_000
 
@@ -71,7 +72,7 @@ export default function CracksModal({ onClose }) {
         <div className="flex items-start justify-between border-b-[3px] border-ink bg-brand-lime px-4 pb-3 pt-4">
           <div>
             <h2 className="font-display text-xl tracking-wide text-ink">
-              ¡EL CRACK DEL DÍA! 👑
+              ¿Quién gana hoy? ⚽
             </h2>
             <p className="mt-0.5 font-sans text-xs text-ink/70">{duelo.pregunta}</p>
           </div>
@@ -204,12 +205,10 @@ function JerseyCard({ id, opcion, voted, voting, onVote }) {
         <JerseySvg fill={opcion.color} numero={opcion.numero} />
       </div>
 
-      {/* Nombre del arquetipo */}
-      <p
-        className={`text-center font-display text-[11px] leading-tight tracking-wide
-                    ${isVoted ? 'text-brand-purple' : 'text-ink/70'}`}
-      >
-        {opcion.nombre}
+      {/* Nombre del equipo + bandera */}
+      <p className={`text-center leading-tight ${isVoted ? 'text-brand-purple' : 'text-ink/70'}`}>
+        <span className="block text-lg">{flagEmoji(opcion.nombre)}</span>
+        <span className="font-display text-[11px] tracking-wide">{opcion.nombre}</span>
       </p>
 
       {/* Botón de voto */}

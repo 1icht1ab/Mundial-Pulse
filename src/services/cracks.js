@@ -5,45 +5,48 @@ function hoyISO() {
   return new Date().toISOString().slice(0, 10)
 }
 
-// ── Mapa de duelos temáticos por partido ──────────────────────────────
-// Clave: 'local-visitante' tal cual está en la tabla partidos.
-// Sin nombres de jugadores reales — solo arquetipos del fútbol.
-const DUELO_MAP = {
-  'Argentina-Austria': {
-    pregunta: '¿Quién domina el partido?',
-    opciones: [
-      { id: 'campeon',   numero: 10, color: '#75AADB', nombre: 'El Campeón Defensor 🏆'    },
-      { id: 'aspirante', numero: 9,  color: '#ED2939', nombre: 'El Aspirante Hambriento ⚡' },
-    ],
-  },
-  'Francia-Irak': {
-    pregunta: '¿Qué estilo gana hoy?',
-    opciones: [
-      { id: 'colectivo', numero: 8, color: '#002395', nombre: 'El Colectivo Elegante 🎨' },
-      { id: 'guerrero',  numero: 7, color: '#CE1126', nombre: 'El Guerrero Sorpresa 🔥'  },
-    ],
-  },
-  'Portugal-Uzbekistán': {
-    pregunta: '¿Quién decide el partido?',
-    opciones: [
-      { id: 'estrella', numero: 7,  color: '#006600', nombre: 'La Estrella Individual ⭐' },
-      { id: 'equipo',   numero: 11, color: '#1C86EE', nombre: 'El Equipo Unido 💪'        },
-    ],
-  },
-  'Inglaterra-Ghana': {
-    pregunta: '¿Qué gana hoy?',
-    opciones: [
-      { id: 'poderio', numero: 9,  color: '#CF081F', nombre: 'El Poderío Físico 💥' },
-      { id: 'magia',   numero: 10, color: '#006B3F', nombre: 'La Magia Africana ✨'  },
-    ],
-  },
+// ── Colores oficiales de camiseta por selección ────────────────────────
+// Clave: nombre exacto tal cual aparece en la columna local/visitante de partidos.
+const TEAM_COLORS = {
+  'Argentina':            { primary: '#75AADB', secondary: '#FFFFFF' },
+  'Austria':              { primary: '#ED2939', secondary: '#FFFFFF' },
+  'Francia':              { primary: '#002395', secondary: '#FFFFFF' },
+  'Irak':                 { primary: '#007A3D', secondary: '#FFFFFF' },
+  'Noruega':              { primary: '#EF2B2D', secondary: '#003087' },
+  'Senegal':              { primary: '#00853F', secondary: '#FFFFFF' },
+  'Jordania':             { primary: '#007A3D', secondary: '#FFFFFF' },
+  'Argelia':              { primary: '#006233', secondary: '#FFFFFF' },
+  'Portugal':             { primary: '#006600', secondary: '#FF0000' },
+  'Uzbekistán':           { primary: '#1EB53A', secondary: '#FFFFFF' },
+  'Inglaterra':           { primary: '#FFFFFF', secondary: '#CF081F' },
+  'Ghana':                { primary: '#006B3F', secondary: '#FCD116' },
+  'Panamá':               { primary: '#D21034', secondary: '#FFFFFF' },
+  'Croacia':              { primary: '#FF0000', secondary: '#FFFFFF' },
+  'Colombia':             { primary: '#FCD116', secondary: '#003087' },
+  'RD Congo':             { primary: '#007FFF', secondary: '#F7D618' },
+  'España':               { primary: '#FF0000', secondary: '#FFC400' },
+  'Arabia Saudita':       { primary: '#006C35', secondary: '#FFFFFF' },
+  'Bélgica':              { primary: '#000000', secondary: '#EF3340' },
+  'Irán':                 { primary: '#239F40', secondary: '#FFFFFF' },
+  'Uruguay':              { primary: '#5EB6E4', secondary: '#FFFFFF' },
+  'Cabo Verde':           { primary: '#003893', secondary: '#CF2027' },
+  'Ecuador':              { primary: '#FFD100', secondary: '#003087' },
+  'Curaçao':              { primary: '#003087', secondary: '#F7D618' },
+  'Nueva Zelanda':        { primary: '#000000', secondary: '#FFFFFF' },
+  'Egipto':               { primary: '#CE1126', secondary: '#FFFFFF' },
+  'Suiza':                { primary: '#FF0000', secondary: '#FFFFFF' },
+  'Canadá':               { primary: '#FF0000', secondary: '#FFFFFF' },
+  'Bosnia y Herzegovina': { primary: '#002395', secondary: '#FFC400' },
+  'Catar':                { primary: '#8D1B3D', secondary: '#FFFFFF' },
 }
 
+const teamColor = (name) => TEAM_COLORS[name]?.primary ?? '#CCFF00'
+
 const FALLBACK_DUELO = {
-  pregunta: '¿Qué decide un partido?',
+  pregunta: '¿Cuál es tu equipo favorito?',
   opciones: [
-    { id: 'gol',     numero: 9, color: '#4ade80', nombre: 'El Gol Salvador ⚽'    },
-    { id: 'defensa', numero: 1, color: '#f87171', nombre: 'La Defensa Heroica 🧤' },
+    { id: 'equipo_local',     nombre: 'Equipo Local',     numero: 9, color: '#CCFF00' },
+    { id: 'equipo_visitante', nombre: 'Equipo Visitante', numero: 1, color: '#FF6B6B' },
   ],
 }
 
@@ -55,9 +58,8 @@ export function getVotoGuardado(dueloId) {
 }
 
 // ── Selección dinámica del duelo del día ──────────────────────────────
-// Trae el primer partido NO finalizado de hoy (UTC) y busca el duelo
-// temático correspondiente. Si no hay partido o no está en el mapa,
-// usa el fallback genérico.
+// Trae el primer partido NO finalizado de hoy (UTC) y construye las
+// dos opciones con colores de camiseta del equipo.
 export async function getDueloDelDia() {
   const hoy = hoyISO()
 
@@ -73,8 +75,14 @@ export async function getDueloDelDia() {
   if (error) console.error('[cracks] getDueloDelDia error:', error.message)
 
   const partido = data?.[0]
-  const duelo   = partido
-    ? (DUELO_MAP[`${partido.local}-${partido.visitante}`] ?? FALLBACK_DUELO)
+  const duelo = partido
+    ? {
+        pregunta: '¿Quién va a ganar hoy?',
+        opciones: [
+          { id: partido.local,     nombre: partido.local,     numero: 9, color: teamColor(partido.local)     },
+          { id: partido.visitante, nombre: partido.visitante, numero: 1, color: teamColor(partido.visitante) },
+        ],
+      }
     : FALLBACK_DUELO
 
   return { dueloId: hoy, duelo }
