@@ -21,8 +21,7 @@ export default function BottomNav({ activeTab, onChange }) {
   return (
     <nav
       aria-label="Navegación principal"
-      className="fixed inset-x-0 bottom-0 left-1/2 z-50 mx-auto w-full max-w-md
-                 -translate-x-1/2 border-t-4 border-ink bg-white px-2 pt-2
+      className="shrink-0 w-full border-t-4 border-ink bg-white px-2 pt-2
                  pb-[max(0.5rem,env(safe-area-inset-bottom))]
                  sm:rounded-b-[2.25rem] sm:border-x-[3px]"
     >

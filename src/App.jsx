@@ -61,7 +61,7 @@ export default function App() {
       </header>
 
       {/* ── Vista activa (conmutada por estado) ───────────────────── */}
-      <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-28 pt-5">
+      <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-5">
         <div key={activeTab} className="animate-pop-in">
           <ActiveView onNavigate={setActiveTab} />
         </div>
