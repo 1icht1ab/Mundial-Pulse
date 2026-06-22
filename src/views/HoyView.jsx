@@ -1,17 +1,21 @@
+import { useState } from 'react'
 import LiveScoreboard from '../components/LiveScoreboard.jsx'
+import CracksModal from '../components/CracksModal.jsx'
 
 /**
  * HoyView — pantalla principal. Muestra el marcador en vivo (LiveScoreboard),
  * accesos rápidos y el "pulso del día".
  */
 const QUICK_ACTIONS = [
-  { id: 'predice', emoji: '🔮', label: 'Predice', bg: 'bg-brand-lime text-ink', tab: 'predice' },
-  { id: 'arcade', emoji: '🕹️', label: 'Arcade', bg: 'bg-brand-purple text-white', tab: 'arcade' },
-  { id: 'stickers', emoji: '✨', label: 'Stickers', bg: 'bg-brand-coral text-white', tab: 'stickers' },
-  { id: 'ranking', emoji: '🏆', label: 'Ranking', bg: 'bg-white text-ink' },
+  { id: 'cracks',   emoji: '👑', label: 'Cracks',   bg: 'bg-brand-lime text-ink',     action: 'cracks' },
+  { id: 'arcade',   emoji: '🕹️', label: 'Arcade',   bg: 'bg-brand-purple text-white', tab: 'arcade'    },
+  { id: 'stickers', emoji: '✨', label: 'Stickers', bg: 'bg-brand-coral text-white',  tab: 'stickers'  },
+  { id: 'ranking',  emoji: '🏆', label: 'Ranking',  bg: 'bg-white text-ink'                            },
 ]
 
 export default function HoyView({ onNavigate }) {
+  const [showCracks, setShowCracks] = useState(false)
+
   return (
     <div className="space-y-5">
       <LiveScoreboard />
@@ -37,7 +41,10 @@ export default function HoyView({ onNavigate }) {
           {QUICK_ACTIONS.map((a) => (
             <button
               key={a.id}
-              onClick={() => a.tab && onNavigate?.(a.tab)}
+              onClick={() => {
+                if (a.action === 'cracks') setShowCracks(true)
+                else if (a.tab) onNavigate?.(a.tab)
+              }}
               className={`sticker-card flex flex-col items-start gap-2 p-4 text-left transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none ${a.bg}`}
             >
               <span className="text-3xl">{a.emoji}</span>
@@ -64,6 +71,8 @@ export default function HoyView({ onNavigate }) {
           <Stat value="#7" label="Tu rank" />
         </div>
       </section>
+
+      {showCracks && <CracksModal onClose={() => setShowCracks(false)} />}
     </div>
   )
 }
