@@ -93,7 +93,7 @@ export default function StickersView({ onNavigate }) {
   function handleDownload(f, cardEl) {
     const svgEl = cardEl?.querySelector('svg')
     if (!svgEl) return
-    const SIZE  = 480
+    const SIZE  = 512
     const clone = svgEl.cloneNode(true)
     clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
     clone.setAttribute('width', String(SIZE))
@@ -105,7 +105,15 @@ export default function StickersView({ onNavigate }) {
       const canvas = document.createElement('canvas')
       canvas.width  = SIZE
       canvas.height = SIZE
-      canvas.getContext('2d').drawImage(img, 0, 0, SIZE, SIZE)
+      const ctx = canvas.getContext('2d')
+      ctx.clearRect(0, 0, SIZE, SIZE)
+      ctx.drawImage(img, 0, 0, SIZE, SIZE)
+      ctx.save()
+      ctx.globalAlpha = 0.4
+      ctx.fillStyle   = '#888888'
+      ctx.font        = '14px sans-serif'
+      ctx.fillText('mundial-pulse.vercel.app', 10, 502)
+      ctx.restore()
       canvas.toBlob(blob => {
         const pngUrl = URL.createObjectURL(blob)
         const a      = document.createElement('a')
@@ -291,7 +299,7 @@ export default function StickersView({ onNavigate }) {
                         onClick={(e) => handleDownload(f, e.currentTarget.closest('[data-figurita]'))}
                         className="flex-1 rounded-full border-[2px] border-ink bg-brand-lime py-0.5 font-sans text-[9px] font-bold leading-none text-ink shadow-[2px_2px_0_#1A1A1A] transition-all active:translate-y-px active:shadow-none"
                       >
-                        ⬇ Guardar
+                        ⬇ Guardar para WhatsApp
                       </button>
                     </div>
                   )}

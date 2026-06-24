@@ -2,141 +2,275 @@
 // formas geométricas planas, trazo negro grueso, paleta de marca.
 // Sin siluetas ni caras de personas reales.
 
-function GolAgonico() {
+function VarCharla() {
   return (
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-      <rect width="100" height="100" fill="#CCFF00"/>
-      {/* Red (top-left) */}
-      <rect x="4" y="4" width="36" height="36" fill="none" stroke="#1A1A2E" strokeWidth="2.5"/>
-      <line x1="16" y1="4" x2="16" y2="40" stroke="#1A1A2E" strokeWidth="1.5"/>
-      <line x1="28" y1="4" x2="28" y2="40" stroke="#1A1A2E" strokeWidth="1.5"/>
-      <line x1="4"  y1="16" x2="40" y2="16" stroke="#1A1A2E" strokeWidth="1.5"/>
-      <line x1="4"  y1="28" x2="40" y2="28" stroke="#1A1A2E" strokeWidth="1.5"/>
-      {/* Speed lines */}
-      <line x1="10" y1="60" x2="58" y2="60" stroke="#1A1A2E" strokeWidth="5"  strokeLinecap="round" opacity="0.25"/>
-      <line x1="14" y1="70" x2="52" y2="70" stroke="#1A1A2E" strokeWidth="3.5" strokeLinecap="round" opacity="0.18"/>
-      <line x1="18" y1="79" x2="48" y2="79" stroke="#1A1A2E" strokeWidth="2.5" strokeLinecap="round" opacity="0.12"/>
-      {/* Ball */}
-      <circle cx="68" cy="64" r="22" fill="white" stroke="#1A1A2E" strokeWidth="3"/>
-      <polygon points="68,46 77,53 74,64 62,64 59,53" fill="#1A1A2E"/>
-      <polygon points="74,64 80,58 86,64 83,72 74,72" fill="none" stroke="#1A1A2E" strokeWidth="1.5"/>
-      <polygon points="62,64 56,58 50,64 53,72 62,72" fill="none" stroke="#1A1A2E" strokeWidth="1.5"/>
-      <polygon points="74,72 83,72 80,80 68,84 56,80 53,72 62,72" fill="none" stroke="#1A1A2E" strokeWidth="1.5"/>
-      {/* Star flash */}
-      <polygon points="87,7 89,13 96,11 91,17 97,21 90,22 92,29 87,23 82,29 84,22 77,21 83,17 78,11 85,13" fill="#FF4B4B" stroke="#1A1A2E" strokeWidth="1"/>
-    </svg>
-  )
-}
-
-function ElMuro() {
-  return (
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-      <rect width="100" height="100" fill="#F5F0E8"/>
-      {/* Bricks row 1 (offset) */}
-      <rect x="-4" y="48" width="38" height="16" fill="#E07820" stroke="#1A1A2E" strokeWidth="2.5" rx="1"/>
-      <rect x="36" y="48" width="38" height="16" fill="#E07820" stroke="#1A1A2E" strokeWidth="2.5" rx="1"/>
-      <rect x="76" y="48" width="28" height="16" fill="#E07820" stroke="#1A1A2E" strokeWidth="2.5" rx="1"/>
-      {/* Bricks row 2 */}
-      <rect x="4"  y="66" width="36" height="16" fill="#D06810" stroke="#1A1A2E" strokeWidth="2.5" rx="1"/>
-      <rect x="42" y="66" width="36" height="16" fill="#D06810" stroke="#1A1A2E" strokeWidth="2.5" rx="1"/>
-      <rect x="80" y="66" width="24" height="16" fill="#D06810" stroke="#1A1A2E" strokeWidth="2.5" rx="1"/>
-      {/* Bricks row 3 */}
-      <rect x="-4" y="84" width="38" height="20" fill="#E07820" stroke="#1A1A2E" strokeWidth="2.5" rx="1"/>
-      <rect x="36" y="84" width="38" height="20" fill="#E07820" stroke="#1A1A2E" strokeWidth="2.5" rx="1"/>
-      <rect x="76" y="84" width="28" height="20" fill="#E07820" stroke="#1A1A2E" strokeWidth="2.5" rx="1"/>
-      {/* Wall top edge */}
-      <rect x="0" y="44" width="100" height="6" fill="#B85800" stroke="#1A1A2E" strokeWidth="1.5"/>
-      {/* Eyes peering over wall */}
-      <circle cx="32" cy="30" r="15" fill="white" stroke="#1A1A2E" strokeWidth="3"/>
-      <circle cx="68" cy="30" r="15" fill="white" stroke="#1A1A2E" strokeWidth="3"/>
-      {/* Pupils */}
-      <circle cx="36" cy="27" r="7"   fill="#1A1A2E"/>
-      <circle cx="72" cy="27" r="7"   fill="#1A1A2E"/>
-      {/* Highlights */}
-      <circle cx="39" cy="24" r="2.5" fill="white"/>
-      <circle cx="75" cy="24" r="2.5" fill="white"/>
-      {/* Angry V eyebrows */}
-      <line x1="20" y1="16" x2="38" y2="20" stroke="#1A1A2E" strokeWidth="3" strokeLinecap="round"/>
-      <line x1="62" y1="20" x2="80" y2="16" stroke="#1A1A2E" strokeWidth="3" strokeLinecap="round"/>
-    </svg>
-  )
-}
-
-function ElVarazo() {
-  return (
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-      <rect width="100" height="100" fill="#1A1A2E"/>
+      <rect width="100" height="100" fill="#FFE500"/>
       {/* TV body */}
-      <rect x="16" y="18" width="68" height="52" rx="5" fill="#2D2D50" stroke="#CCFF00" strokeWidth="3"/>
-      {/* Screen */}
-      <rect x="22" y="24" width="56" height="40" rx="3" fill="#4338CA"/>
-      {/* VAR text */}
-      <text x="50" y="51" textAnchor="middle" fontFamily="monospace" fontWeight="900" fontSize="20" fill="white" letterSpacing="4">VAR</text>
-      {/* Blinking underscore detail */}
-      <rect x="29" y="55" width="42" height="3" rx="1" fill="white" opacity="0.25"/>
-      {/* TV stand */}
-      <rect x="34" y="70" width="10" height="12" rx="1" fill="#2D2D50" stroke="#CCFF00" strokeWidth="2"/>
-      <rect x="56" y="70" width="10" height="12" rx="1" fill="#2D2D50" stroke="#CCFF00" strokeWidth="2"/>
-      {/* Antenna left */}
-      <line x1="40" y1="18" x2="30" y2="6"  stroke="#CCFF00" strokeWidth="2.5" strokeLinecap="round"/>
-      <circle cx="29" cy="5" r="3" fill="#CCFF00"/>
-      {/* Antenna right */}
-      <line x1="60" y1="18" x2="70" y2="6"  stroke="#CCFF00" strokeWidth="2.5" strokeLinecap="round"/>
-      <circle cx="71" cy="5" r="3" fill="#CCFF00"/>
-      {/* Lightning left */}
-      <polygon points="7,30 12,30 8,46 14,46 9,62 4,62 8,47 2,47" fill="#CCFF00"/>
-      {/* Lightning right */}
-      <polygon points="93,30 88,30 92,46 86,46 91,62 96,62 92,47 98,47" fill="#CCFF00"/>
-      {/* Stars bottom */}
-      <circle cx="22" cy="88" r="4" fill="#FF4B4B"/>
-      <circle cx="50" cy="90" r="3" fill="#FF4B4B"/>
-      <circle cx="78" cy="88" r="4" fill="#FF4B4B"/>
+      <rect x="12" y="18" width="64" height="48" rx="7" fill="#F5F0E8" stroke="#1A1A2E" strokeWidth="3"/>
+      {/* TV screen */}
+      <rect x="19" y="25" width="50" height="34" rx="4" fill="#BFD7F5" stroke="#1A1A2E" strokeWidth="2"/>
+      {/* Suspicious squinting eyes */}
+      <ellipse cx="34" cy="38" rx="5.5" ry="3.5" fill="#1A1A2E"/>
+      <ellipse cx="54" cy="38" rx="5.5" ry="3.5" fill="#1A1A2E"/>
+      {/* Eye shine */}
+      <ellipse cx="36" cy="36.5" rx="2" ry="1.5" fill="white" opacity="0.7"/>
+      <ellipse cx="56" cy="36.5" rx="2" ry="1.5" fill="white" opacity="0.7"/>
+      {/* Suspicious slanted brows */}
+      <line x1="27" y1="31" x2="41" y2="34" stroke="#1A1A2E" strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="47" y1="34" x2="61" y2="31" stroke="#1A1A2E" strokeWidth="2.5" strokeLinecap="round"/>
+      {/* Smirk */}
+      <path d="M35,50 C40,54 52,53 58,49" fill="none" stroke="#1A1A2E" strokeWidth="2.5" strokeLinecap="round"/>
+      {/* Sweat drop */}
+      <ellipse cx="62" cy="30" rx="2.5" ry="3.5" fill="#4338CA" stroke="#1A1A2E" strokeWidth="1"/>
+      <circle cx="62" cy="27" r="1.5" fill="#4338CA" stroke="#1A1A2E" strokeWidth="0.8"/>
+      {/* TV antennae */}
+      <line x1="34" y1="18" x2="26" y2="6" stroke="#1A1A2E" strokeWidth="2.5" strokeLinecap="round"/>
+      <circle cx="25" cy="5" r="3" fill="#FF4B4B" stroke="#1A1A2E" strokeWidth="1.5"/>
+      <line x1="54" y1="18" x2="62" y2="6" stroke="#1A1A2E" strokeWidth="2.5" strokeLinecap="round"/>
+      <circle cx="63" cy="5" r="3" fill="#FF4B4B" stroke="#1A1A2E" strokeWidth="1.5"/>
+      {/* TV legs */}
+      <rect x="26" y="66" width="9" height="9" rx="2" fill="#F5F0E8" stroke="#1A1A2E" strokeWidth="2"/>
+      <rect x="53" y="66" width="9" height="9" rx="2" fill="#F5F0E8" stroke="#1A1A2E" strokeWidth="2"/>
+      {/* VAR label below TV */}
+      <rect x="22" y="77" width="44" height="13" rx="3" fill="#1A1A2E"/>
+      <text x="44" y="87" textAnchor="middle" fontFamily="monospace" fontWeight="900" fontSize="8" fill="#FFE500" letterSpacing="3">VAR</text>
+      {/* Magnifying glass (right side) */}
+      <circle cx="83" cy="56" r="13" fill="white" stroke="#1A1A2E" strokeWidth="3"/>
+      <circle cx="83" cy="56" r="9" fill="#BFD7F5" stroke="#1A1A2E" strokeWidth="1.5"/>
+      <text x="80" y="61" fontFamily="sans-serif" fontWeight="900" fontSize="11" fill="#1A1A2E">?</text>
+      {/* Handle */}
+      <line x1="93" y1="67" x2="98" y2="73" stroke="#1A1A2E" strokeWidth="5" strokeLinecap="round"/>
+      {/* Exclamation marks accent */}
+      <text x="4" y="55" fontFamily="sans-serif" fontWeight="900" fontSize="12" fill="#FF4B4B" stroke="#1A1A2E" strokeWidth="0.8">!</text>
+      <text x="4" y="40" fontFamily="sans-serif" fontWeight="900" fontSize="9" fill="#FF4B4B" stroke="#1A1A2E" strokeWidth="0.6">?</text>
     </svg>
   )
 }
 
-function LaRemontada() {
+function DefensaBloque() {
   return (
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-      <rect width="100" height="100" fill="#FF4B4B"/>
-      {/* Big upward arrow */}
-      <polygon
-        points="50,6 78,40 63,40 63,94 37,94 37,40 22,40"
-        fill="white"
-        stroke="#1A1A2E"
-        strokeWidth="3"
-        strokeLinejoin="round"
-      />
-      {/* Stars (4-pointed) */}
-      <polygon points="14,16 16,22 22,20 16,26 14,32 12,26 6,20 12,22"  fill="#CCFF00" stroke="#1A1A2E" strokeWidth="1.5"/>
-      <polygon points="86,10 88,16 94,14 88,20 86,26 84,20 78,14 84,16"  fill="#CCFF00" stroke="#1A1A2E" strokeWidth="1.5"/>
-      <polygon points="90,54 92,59 98,58 93,62 90,68 88,62 82,58 88,59"  fill="#CCFF00" stroke="#1A1A2E" strokeWidth="1.5"/>
-      <polygon points="10,64 12,69 18,68 13,72 10,78 8,72 2,68 8,69"    fill="#CCFF00" stroke="#1A1A2E" strokeWidth="1.5"/>
-      {/* Small accent dots */}
-      <circle cx="20" cy="46" r="5" fill="#CCFF00" stroke="#1A1A2E" strokeWidth="2"/>
-      <circle cx="82" cy="80" r="5" fill="#CCFF00" stroke="#1A1A2E" strokeWidth="2"/>
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      {/* Fondo amarillo mostaza */}
+      <rect width="200" height="200" rx="24" fill="#F5C518"/>
+
+      {/* Cartel ligeramente torcido */}
+      <g transform="rotate(-3, 100, 100)">
+        {/* Cuerpo del cartel */}
+        <rect x="25" y="55" width="150" height="90" rx="8"
+              fill="#FFF8E7" stroke="#000" strokeWidth="5"/>
+
+        {/* Texto CERRADO */}
+        <text x="100" y="108" textAnchor="middle"
+              fontFamily="Arial Black, sans-serif"
+              fontWeight="900" fontSize="32"
+              fill="#CC0000" stroke="#000" strokeWidth="2"
+              paintOrder="stroke fill">
+          CERRADO
+        </text>
+
+        {/* Ojos somnolientos */}
+        <path d="M65 75 Q72 70 79 75" fill="none"
+              stroke="#000" strokeWidth="4" strokeLinecap="round"/>
+        <path d="M121 75 Q128 70 135 75" fill="none"
+              stroke="#000" strokeWidth="4" strokeLinecap="round"/>
+
+        {/* Boca plana aburrida */}
+        <line x1="85" y1="88" x2="115" y2="88"
+              stroke="#000" strokeWidth="4" strokeLinecap="round"/>
+      </g>
+
+      {/* Cadena y candado */}
+      <line x1="148" y1="30" x2="148" y2="55"
+            stroke="#888" strokeWidth="4"/>
+      <rect x="138" y="18" width="20" height="14" rx="3"
+            fill="#888" stroke="#000" strokeWidth="3"/>
+      <path d="M142 18 Q142 10 148 10 Q154 10 154 18"
+            fill="none" stroke="#888" strokeWidth="4"/>
+
+      {/* ZZZ */}
+      <text x="155" y="75" fontFamily="Arial Black, sans-serif"
+            fontWeight="900" fontSize="18" fill="#000" opacity="0.4">
+        z z z
+      </text>
     </svg>
   )
 }
 
-function RojaDirecta() {
+function AnuloMufa() {
+  return (
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      <rect width="200" height="200" rx="24" fill="#A3E635"/>
+
+      {/* Puño cerrado — base de la mano */}
+      <rect x="62" y="120" width="76" height="55" rx="14"
+            fill="#FFD700" stroke="#000" strokeWidth="5"/>
+
+      {/* Nudillos de los dedos cerrados */}
+      <rect x="62" y="118" width="18" height="20" rx="8"
+            fill="#FFD700" stroke="#000" strokeWidth="4"/>
+      <rect x="83" y="115" width="18" height="23" rx="8"
+            fill="#FFD700" stroke="#000" strokeWidth="4"/>
+      <rect x="104" y="116" width="18" height="22" rx="8"
+            fill="#FFD700" stroke="#000" strokeWidth="4"/>
+      <rect x="124" y="120" width="16" height="18" rx="8"
+            fill="#FFD700" stroke="#000" strokeWidth="4"/>
+
+      {/* Pulgar hacia el costado */}
+      <rect x="38" y="130" width="30" height="18" rx="9"
+            fill="#FFD700" stroke="#000" strokeWidth="4"/>
+
+      {/* Dedo índice levantado — claramente parte de la mano */}
+      <rect x="83" y="58" width="22" height="62" rx="11"
+            fill="#FFD700" stroke="#000" strokeWidth="5"/>
+      {/* Uña */}
+      <ellipse cx="94" cy="64" rx="8" ry="5"
+               fill="#FFF8DC" stroke="#000" strokeWidth="2"/>
+
+      {/* Burbuja TE LO DIJE */}
+      <rect x="115" y="42" width="76" height="38" rx="10"
+            fill="#FFF" stroke="#000" strokeWidth="4"/>
+      <polygon points="118,72 106,82 130,72"
+               fill="#FFF" stroke="#000" strokeWidth="3"/>
+      <text x="153" y="66" textAnchor="middle"
+            fontFamily="Arial Black, sans-serif"
+            fontWeight="900" fontSize="12"
+            fill="#000">TE LO DIJE</text>
+
+      {/* Destellos */}
+      <text x="22" y="70" fontSize="22">✨</text>
+      <text x="158" y="168" fontSize="16">⭐</text>
+      <text x="30" y="175" fontSize="14">✨</text>
+    </svg>
+  )
+}
+
+function AbsolutoCine() {
+  return (
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      {/* Fondo azul oscuro con estrellas */}
+      <rect width="200" height="200" rx="24" fill="#1a1a2e"/>
+      <circle cx="30" cy="25" r="2" fill="#FFF" opacity="0.6"/>
+      <circle cx="170" cy="35" r="1.5" fill="#FFF" opacity="0.5"/>
+      <circle cx="155" cy="15" r="2" fill="#FFF" opacity="0.7"/>
+      <circle cx="55" cy="18" r="1.5" fill="#FFF" opacity="0.4"/>
+      <circle cx="185" cy="70" r="2" fill="#FFF" opacity="0.5"/>
+
+      {/* Bolsa de palomitas — forma trapezoidal */}
+      <path d="M60 95 L50 175 L150 175 L140 95 Z"
+            fill="#CC0000" stroke="#000" strokeWidth="5"
+            strokeLinejoin="round"/>
+      {/* Rayas amarillas verticales */}
+      <path d="M75 95 L66 175" stroke="#FFD700" strokeWidth="8"
+            strokeLinecap="butt"/>
+      <path d="M95 95 L88 175" stroke="#FFD700" strokeWidth="8"/>
+      <path d="M115 95 L112 175" stroke="#FFD700" strokeWidth="8"/>
+      <path d="M135 95 L134 175" stroke="#FFD700" strokeWidth="8"/>
+      {/* Tapa blanca del borde superior */}
+      <path d="M55 95 L145 95 L140 108 L60 108 Z"
+            fill="#FFF" stroke="#000" strokeWidth="4"
+            strokeLinejoin="round"/>
+
+      {/* Cara de shock en la bolsa */}
+      {/* Ojos desorbitados */}
+      <circle cx="82" cy="128" r="14"
+              fill="#FFF" stroke="#000" strokeWidth="4"/>
+      <circle cx="118" cy="128" r="14"
+              fill="#FFF" stroke="#000" strokeWidth="4"/>
+      {/* Pupilas pequeñas descentradas — mirando hacia arriba */}
+      <circle cx="85" cy="122" r="5" fill="#000"/>
+      <circle cx="121" cy="122" r="5" fill="#000"/>
+      {/* Brillo en los ojos */}
+      <circle cx="88" cy="119" r="2" fill="#FFF"/>
+      <circle cx="124" cy="119" r="2" fill="#FFF"/>
+      {/* Boca abierta en O de shock */}
+      <ellipse cx="100" cy="155" rx="14" ry="12"
+               fill="#000" stroke="#000" strokeWidth="2"/>
+      <ellipse cx="100" cy="155" rx="9" ry="7" fill="#CC0000"/>
+
+      {/* Palomitas volando — asimétricas */}
+      <ellipse cx="48" cy="68" rx="14" ry="10"
+               fill="#FFF8DC" stroke="#000" strokeWidth="3"
+               transform="rotate(-25, 48, 68)"/>
+      <ellipse cx="48" cy="62" rx="10" ry="7"
+               fill="#FFF8DC" stroke="#000" strokeWidth="3"
+               transform="rotate(15, 48, 62)"/>
+
+      <ellipse cx="82" cy="52" rx="13" ry="9"
+               fill="#FFF8DC" stroke="#000" strokeWidth="3"
+               transform="rotate(10, 82, 52)"/>
+      <ellipse cx="88" cy="44" rx="9" ry="7"
+               fill="#FFF8DC" stroke="#000" strokeWidth="3"
+               transform="rotate(-20, 88, 44)"/>
+
+      <ellipse cx="138" cy="58" rx="12" ry="9"
+               fill="#FFF8DC" stroke="#000" strokeWidth="3"
+               transform="rotate(30, 138, 58)"/>
+      <ellipse cx="155" cy="72" rx="10" ry="8"
+               fill="#FFF8DC" stroke="#000" strokeWidth="3"
+               transform="rotate(-10, 155, 72)"/>
+
+      {/* Palomita pequeña con carita de susto */}
+      <ellipse cx="165" cy="50" rx="11" ry="8"
+               fill="#FFF8DC" stroke="#000" strokeWidth="3"
+               transform="rotate(20, 165, 50)"/>
+      <circle cx="163" cy="48" r="2.5" fill="#000"/>
+      <circle cx="168" cy="48" r="2.5" fill="#000"/>
+      <path d="M162 53 Q165 56 169 53" fill="none"
+            stroke="#000" strokeWidth="1.5"
+            strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function ModoAvion() {
   return (
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-      <rect width="100" height="100" fill="#F5F0E8"/>
-      {/* Card shadow */}
-      <rect x="35" y="27" width="38" height="54" rx="4" fill="#1A1A2E" transform="rotate(10,54,54)"/>
-      {/* Red card */}
-      <rect x="28" y="20" width="38" height="54" rx="4" fill="#FF4B4B" stroke="#1A1A2E" strokeWidth="3" transform="rotate(10,47,47)"/>
-      {/* Exclamation mark on card */}
-      <rect x="44" y="30" width="7" height="26" rx="3" fill="white" transform="rotate(10,47,43)"/>
-      <circle cx="50" cy="68" r="4.5" fill="white" transform="rotate(10,50,68)"/>
-      {/* Sparks/stars flying off */}
-      <polygon points="12,14 14,19 20,18 15,23 12,28 10,23 4,18 10,19"  fill="#CCFF00" stroke="#1A1A2E" strokeWidth="1.5"/>
-      <polygon points="82,8  84,13 90,12 85,17 82,22 80,17 74,12 80,13"  fill="#CCFF00" stroke="#1A1A2E" strokeWidth="1.5"/>
-      <polygon points="88,36 90,41 96,40 91,45 88,50 86,45 80,40 86,41"  fill="#CCFF00" stroke="#1A1A2E" strokeWidth="1.5"/>
-      {/* Whistle accent */}
-      <ellipse cx="14" cy="58" rx="6" ry="5" fill="#4338CA" stroke="#1A1A2E" strokeWidth="2"/>
-      <line x1="20" y1="58" x2="28" y2="55" stroke="#4338CA" strokeWidth="2.5" strokeLinecap="round"/>
+      <rect width="100" height="100" fill="white"/>
+      {/* Caution tape top */}
+      <rect x="0" y="0" width="100" height="14" fill="#FFE500"/>
+      <line x1="0"  y1="0" x2="14"  y2="14" stroke="#1A1A2E" strokeWidth="3.5"/>
+      <line x1="14" y1="0" x2="28"  y2="14" stroke="#1A1A2E" strokeWidth="3.5"/>
+      <line x1="28" y1="0" x2="42"  y2="14" stroke="#1A1A2E" strokeWidth="3.5"/>
+      <line x1="42" y1="0" x2="56"  y2="14" stroke="#1A1A2E" strokeWidth="3.5"/>
+      <line x1="56" y1="0" x2="70"  y2="14" stroke="#1A1A2E" strokeWidth="3.5"/>
+      <line x1="70" y1="0" x2="84"  y2="14" stroke="#1A1A2E" strokeWidth="3.5"/>
+      <line x1="84" y1="0" x2="98"  y2="14" stroke="#1A1A2E" strokeWidth="3.5"/>
+      <rect x="0" y="0" width="100" height="14" fill="none" stroke="#1A1A2E" strokeWidth="2"/>
+      {/* Phone body */}
+      <rect x="27" y="16" width="46" height="72" rx="8" fill="#E8E8E8" stroke="#1A1A2E" strokeWidth="3"/>
+      {/* Screen dark */}
+      <rect x="32" y="23" width="36" height="55" rx="5" fill="#1A1A2E"/>
+      {/* Airplane icon on screen */}
+      <path d="M50,35 L62,42 L50,46 L38,42 Z" fill="#CCFF00" opacity="0.85"/>
+      <rect x="48" y="46" width="4" height="12" rx="1" fill="#CCFF00" opacity="0.85"/>
+      <rect x="40" y="54" width="20" height="3" rx="1" fill="#CCFF00" opacity="0.85"/>
+      {/* Signal bars — all X'd out */}
+      <rect x="36" y="65" width="5" height="7" rx="1" fill="#4B5563" opacity="0.5"/>
+      <rect x="44" y="61" width="5" height="11" rx="1" fill="#4B5563" opacity="0.5"/>
+      <rect x="52" y="57" width="5" height="15" rx="1" fill="#4B5563" opacity="0.5"/>
+      <rect x="60" y="53" width="5" height="19" rx="1" fill="#4B5563" opacity="0.5"/>
+      {/* Big X over signal */}
+      <line x1="36" y1="53" x2="65" y2="72" stroke="#FF4B4B" strokeWidth="3" strokeLinecap="round" opacity="0.9"/>
+      <line x1="65" y1="53" x2="36" y2="72" stroke="#FF4B4B" strokeWidth="3" strokeLinecap="round" opacity="0.9"/>
+      {/* Mummy bandage strips */}
+      <rect x="22" y="28" width="56" height="8" rx="2" fill="white" stroke="#1A1A2E" strokeWidth="2" opacity="0.95"/>
+      <rect x="20" y="42" width="60" height="8" rx="2" fill="white" stroke="#1A1A2E" strokeWidth="2" opacity="0.95" transform="rotate(-3,50,46)"/>
+      <rect x="22" y="58" width="56" height="8" rx="2" fill="white" stroke="#1A1A2E" strokeWidth="2" opacity="0.95" transform="rotate(2,50,62)"/>
+      <rect x="18" y="72" width="64" height="8" rx="2" fill="white" stroke="#1A1A2E" strokeWidth="2" opacity="0.9" transform="rotate(-2,50,76)"/>
+      {/* Cute eyes peeking through bandage gap (between bandage 1 and 2) */}
+      <circle cx="43" cy="38" r="4.5" fill="white" stroke="#1A1A2E" strokeWidth="1.5"/>
+      <circle cx="57" cy="38" r="4.5" fill="white" stroke="#1A1A2E" strokeWidth="1.5"/>
+      <circle cx="43" cy="38" r="2.5" fill="#1A1A2E"/>
+      <circle cx="57" cy="38" r="2.5" fill="#1A1A2E"/>
+      <circle cx="44" cy="37" r="1" fill="white"/>
+      <circle cx="58" cy="37" r="1" fill="white"/>
+      {/* MODO AVIÓN label */}
+      <rect x="8" y="92" width="84" height="8" rx="3" fill="#1A1A2E"/>
+      <text x="50" y="98.5" textAnchor="middle" fontFamily="monospace" fontWeight="900" fontSize="6.5" fill="#CCFF00" letterSpacing="2">MODO AVIÓN</text>
+      {/* Stars accent */}
+      <polygon points="8,50 9.5,54 13,53 10.5,56 8,60 5.5,56 2,53 5.5,54" fill="#FFE500" stroke="#1A1A2E" strokeWidth="1"/>
+      <polygon points="90,35 91.5,39 95,38 92.5,41 90,45 87.5,41 84,38 87.5,39" fill="#FFE500" stroke="#1A1A2E" strokeWidth="1"/>
     </svg>
   )
 }
@@ -206,12 +340,12 @@ function DatoInutil() {
 }
 
 const ILLUSTRATIONS = {
-  gol_agonico:  GolAgonico,
-  el_muro:      ElMuro,
-  el_varazo:    ElVarazo,
-  la_remontada: LaRemontada,
-  roja_directa: RojaDirecta,
-  dato_inutil:  DatoInutil,
+  var_charla:      VarCharla,
+  defensa_bloque:  DefensaBloque,
+  anulo_mufa:      AnuloMufa,
+  absoluto_cine:   AbsolutoCine,
+  modo_avion:      ModoAvion,
+  dato_inutil:     DatoInutil,
 }
 
 export default function FiguritaIlustracion({ id }) {
