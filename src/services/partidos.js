@@ -21,7 +21,7 @@ export async function getFixture() {
   try {
     const { data, error } = await supabase
       .from('partidos')
-      .select('numero, local, visitante, grupo, estado, fecha, resultado_local, resultado_visitante')
+      .select('numero, local, visitante, grupo, ronda, estado, fecha, resultado_local, resultado_visitante')
       .order('fecha', { ascending: true })
 
     if (error) throw error

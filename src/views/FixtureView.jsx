@@ -46,14 +46,27 @@ function findLiveMatch(partido, liveMatches) {
   ) ?? null
 }
 
+// ── Rondas eliminatorias ──────────────────────────────────────────────
+const RONDAS_ELIM = [
+  { key: '16avos',        label: '16avos de Final' },
+  { key: '8vos',          label: '8vos de Final'   },
+  { key: 'cuartos',       label: 'Cuartos de Final'},
+  { key: 'semis',         label: 'Semifinales'     },
+  { key: 'final',         label: 'Final'           },
+  { key: 'tercer_puesto', label: 'Tercer Puesto'   },
+]
+
 // ── Componente principal ─────────────────────────────────────────────
 
 export default function FixtureView({ onNavigate }) {
   const [partidos,    setPartidos]    = useState([])
   const [liveMatches, setLiveMatches] = useState([])
   const [loading,     setLoading]     = useState(true)
-  const [openFin,     setOpenFin]     = useState(false)  // colapsado por defecto
-  const [openProx,    setOpenProx]    = useState(true)   // expandido por defecto
+  const [openFin,     setOpenFin]     = useState(false)
+  const [openProx,    setOpenProx]    = useState(true)
+  const [tab,         setTab]         = useState(() =>
+    new Date() < new Date('2026-06-29T00:00:00') ? 'grupos' : 'elim'
+  )
 
   useEffect(() => {
     Promise.all([getFixture(), getLiveMatches()])
@@ -64,11 +77,10 @@ export default function FixtureView({ onNavigate }) {
       })
   }, [])
 
-  // Finalizados: orden cronológico tal como vienen de getFixture()
-  const finalizados = partidos.filter(p => p.estado === 'finalizado')
-
-  // Próximos: live siempre primero, luego cronológico
-  const proximos = partidos
+  // Fase de grupos: partidos sin ronda
+  const gruposPartidos = partidos.filter(p => !p.ronda)
+  const finalizados = gruposPartidos.filter(p => p.estado === 'finalizado')
+  const proximos = gruposPartidos
     .filter(p => p.estado !== 'finalizado')
     .sort((a, b) => {
       const aLive = !!findLiveMatch(a, liveMatches) || a.estado === 'en_curso'
@@ -77,6 +89,9 @@ export default function FixtureView({ onNavigate }) {
       if (!aLive && bLive) return 1
       return new Date(a.fecha) - new Date(b.fecha)
     })
+
+  // Eliminatorias: partidos con ronda
+  const elimPartidos = partidos.filter(p => !!p.ronda)
 
   return (
     <div className="space-y-4">
@@ -92,60 +107,133 @@ export default function FixtureView({ onNavigate }) {
           </button>
           <span className="text-2xl">📅</span>
           <span className="font-sans text-sm text-white/70">
-            {partidos.length} partidos
+            {gruposPartidos.length} partidos
           </span>
         </div>
         <h1 className="font-display text-xl tracking-wide text-center">FIXTURE</h1>
         <p className="mt-1 text-xs text-white/60 font-sans text-center normal-case tracking-normal">
           Orden cronológico · Hora local de tu navegador
         </p>
+
+        {/* Tabs */}
+        <div className="mt-3 flex border-2 border-white/40 rounded-lg overflow-hidden">
+          <button
+            onClick={() => setTab('grupos')}
+            className={`flex-1 py-1.5 font-display text-xs tracking-wide transition-colors ${
+              tab === 'grupos'
+                ? 'bg-white text-brand-purple'
+                : 'text-white/70 hover:text-white'
+            }`}
+          >
+            GRUPOS
+          </button>
+          <div className="w-0.5 bg-white/40" />
+          <button
+            onClick={() => setTab('elim')}
+            className={`flex-1 py-1.5 font-display text-xs tracking-wide transition-colors ${
+              tab === 'elim'
+                ? 'bg-white text-brand-purple'
+                : 'text-white/70 hover:text-white'
+            }`}
+          >
+            ELIMINATORIAS
+          </button>
+        </div>
       </div>
 
-      {/* Acordeón */}
+      {/* Content */}
       {loading ? (
         <SkeletonList />
-      ) : partidos.length === 0 ? (
-        <div className="sticker-card bg-white p-6 text-center">
-          <p className="font-display text-lg">Sin partidos cargados</p>
-        </div>
+      ) : tab === 'grupos' ? (
+        gruposPartidos.length === 0 ? (
+          <div className="sticker-card bg-white p-6 text-center">
+            <p className="font-display text-lg">Sin partidos cargados</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <AccordionSection
+              title="Próximos"
+              count={proximos.length}
+              open={openProx}
+              onToggle={() => setOpenProx(v => !v)}
+            >
+              {proximos.map(p => (
+                <MatchCard
+                  key={p.numero}
+                  partido={p}
+                  liveMatch={findLiveMatch(p, liveMatches)}
+                />
+              ))}
+            </AccordionSection>
+            <AccordionSection
+              title="Finalizados"
+              count={finalizados.length}
+              open={openFin}
+              onToggle={() => setOpenFin(v => !v)}
+            >
+              {finalizados.map(p => (
+                <MatchCard
+                  key={p.numero}
+                  partido={p}
+                  liveMatch={findLiveMatch(p, liveMatches)}
+                />
+              ))}
+            </AccordionSection>
+          </div>
+        )
       ) : (
-        <div className="space-y-3">
-
-          {/* Sección Próximos */}
-          <AccordionSection
-            title="Próximos"
-            count={proximos.length}
-            open={openProx}
-            onToggle={() => setOpenProx(v => !v)}
-          >
-            {proximos.map(p => (
-              <MatchCard
-                key={p.numero}
-                partido={p}
-                liveMatch={findLiveMatch(p, liveMatches)}
-              />
-            ))}
-          </AccordionSection>
-
-          {/* Sección Finalizados */}
-          <AccordionSection
-            title="Finalizados"
-            count={finalizados.length}
-            open={openFin}
-            onToggle={() => setOpenFin(v => !v)}
-          >
-            {finalizados.map(p => (
-              <MatchCard
-                key={p.numero}
-                partido={p}
-                liveMatch={findLiveMatch(p, liveMatches)}
-              />
-            ))}
-          </AccordionSection>
-
-        </div>
+        <EliminatoriaView partidos={elimPartidos} liveMatches={liveMatches} />
       )}
 
+    </div>
+  )
+}
+
+// ── EliminatoriaView ──────────────────────────────────────────────────
+
+function EliminatoriaView({ partidos, liveMatches }) {
+  const [openRondas, setOpenRondas] = useState(() => {
+    const withData = new Set(partidos.map(p => p.ronda))
+    return Object.fromEntries(RONDAS_ELIM.map(r => [r.key, withData.has(r.key)]))
+  })
+
+  if (partidos.length === 0) {
+    return (
+      <div className="sticker-card bg-white p-6 text-center space-y-1">
+        <p className="font-display text-lg">Sin partidos eliminatorios</p>
+        <p className="font-sans text-sm text-ink/50">Disponible a partir del 29 de junio</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {RONDAS_ELIM.map(ronda => {
+        const ps = partidos
+          .filter(p => p.ronda === ronda.key)
+          .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
+        return (
+          <AccordionSection
+            key={ronda.key}
+            title={ronda.label}
+            count={ps.length}
+            open={openRondas[ronda.key]}
+            onToggle={() => setOpenRondas(prev => ({ ...prev, [ronda.key]: !prev[ronda.key] }))}
+          >
+            {ps.length > 0 ? (
+              ps.map(p => (
+                <MatchCard
+                  key={p.numero}
+                  partido={p}
+                  liveMatch={findLiveMatch(p, liveMatches)}
+                />
+              ))
+            ) : (
+              <p className="font-sans text-sm text-ink/40 text-center py-3">Sin partidos aún</p>
+            )}
+          </AccordionSection>
+        )
+      })}
     </div>
   )
 }
@@ -207,9 +295,13 @@ function MatchCard({ partido, liveMatch }) {
 
       {/* Grupo + status/time */}
       <div className="flex items-center justify-between mb-2">
-        <span className="pop-tag bg-brand-purple text-white border-brand-purple text-[10px]">
-          Grupo {grupo}
-        </span>
+        {grupo ? (
+          <span className="pop-tag bg-brand-purple text-white border-brand-purple text-[10px]">
+            Grupo {grupo}
+          </span>
+        ) : (
+          <span />
+        )}
 
         {isLive ? (
           <span className="pop-tag bg-brand-coral text-white border-brand-coral text-[10px] animate-pulse">
@@ -270,7 +362,6 @@ function MatchCard({ partido, liveMatch }) {
 function SkeletonList() {
   return (
     <div className="space-y-3">
-      {/* Skeleton de sección */}
       {[6, 4].map((count, si) => (
         <div key={si}>
           <div className="sticker-card bg-brand-purple/30 p-3 h-11 animate-pulse" />
